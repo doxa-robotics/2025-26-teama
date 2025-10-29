@@ -1,0 +1,28 @@
+[package]
+name = "teama-2025-26"
+version = "0.1.0"
+edition = "2024"
+
+[profile.release]
+opt-level = "z"
+lto = "fat"
+
+[package.metadata.v5]
+upload-strategy = "differential"
+slot = 1
+icon = "cool-x"
+compress = true
+
+[dependencies]
+doxa-selector = { git = "https://github.com/doxa-robotics/doxa-selector-rs.git", rev = "c2a3ef78ae380f13f47739ee12cf23b4e7dfd148", features = [
+  "ui",
+] }
+log = "0.4.22"
+libdoxa = { path = "../libdoxa" }
+snafu = "0.8.5"
+pid = "4.0.0"
+vexide-motorgroup = "2.2.0-alpha.5"
+
+[dependencies.vexide]
+version = "0.8.0-alpha.2"
+features = ["full", "vex-sdk-jumptable", "vex-sdk-mock"]
