@@ -3,6 +3,10 @@ name = "teama-2025-26"
 version = "0.1.0"
 edition = "2024"
 
+[profile.dev]
+opt-level = "z"
+lto = "fat"
+
 [profile.release]
 opt-level = "z"
 lto = "fat"
@@ -14,7 +18,7 @@ icon = "cool-x"
 compress = true
 
 [dependencies]
-doxa-selector = { git = "https://github.com/doxa-robotics/doxa-selector-rs.git", rev = "c2a3ef78ae380f13f47739ee12cf23b4e7dfd148", features = [
+doxa-selector = { git = "https://github.com/doxa-robotics/doxa-selector-rs.git", rev = "68681fc", features = [
   "ui",
 ] }
 log = "0.4.22"

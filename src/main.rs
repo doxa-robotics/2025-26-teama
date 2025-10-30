@@ -1,13 +1,18 @@
+#![feature(never_type)]
+
+use std::time::Duration;
+
 use doxa_selector::{CompeteWithSelector, CompeteWithSelectorExt};
 use libdoxa::subsystems::{
     drivetrain::Drivetrain,
     tracking::{TrackingSubsystem, wheel::TrackingWheel},
 };
-use vexide::prelude::*;
+use vexide::{prelude::*, startup::banner::themes::THEME_OFFICIAL_LOGO};
 use vexide_motorgroup::{SharedMotors, motor_group};
 
-use crate::subsystems::{intake::Intake, match_loader::MatchLoader};
+use crate::subsystems::{intake::Intake, lift::Lift, match_loader::MatchLoader};
 
+mod opcontrol;
 mod subsystems;
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
@@ -30,6 +35,7 @@ struct Robot {
     tracking: TrackingSubsystem,
 
     intake: Intake,
+    lift: Lift,
     match_loader: MatchLoader,
 }
 
@@ -52,22 +58,29 @@ impl CompeteWithSelector for Robot {
     }
 
     async fn driver(&mut self) {
-        println!("Driver!");
+        while let Err(err) = opcontrol::normal::opcontrol(self).await {
+            log::error!("Opcontrol error: {}", err);
+            sleep(Duration::from_millis(100)).await;
+        }
+    }
+
+    fn controller(&self) -> Option<&vexide::controller::Controller> {
+        Some(&self.controller)
     }
 }
 
-#[vexide::main]
+#[vexide::main(banner(theme = THEME_OFFICIAL_LOGO))]
 async fn main(peripherals: Peripherals) {
     // The drivetrain motors
     let left_motors = SharedMotors::new(motor_group![
-        Motor::new(peripherals.port_1, Gearset::Green, Direction::Forward),
-        Motor::new(peripherals.port_2, Gearset::Green, Direction::Forward),
-        Motor::new(peripherals.port_3, Gearset::Green, Direction::Forward),
+        Motor::new(peripherals.port_11, Gearset::Blue, Direction::Reverse),
+        Motor::new(peripherals.port_12, Gearset::Blue, Direction::Reverse),
+        Motor::new(peripherals.port_13, Gearset::Blue, Direction::Reverse),
     ]);
     let right_motors = SharedMotors::new(motor_group![
-        Motor::new(peripherals.port_4, Gearset::Green, Direction::Reverse),
-        Motor::new(peripherals.port_5, Gearset::Green, Direction::Reverse),
-        Motor::new(peripherals.port_6, Gearset::Green, Direction::Reverse),
+        Motor::new(peripherals.port_18, Gearset::Blue, Direction::Forward),
+        Motor::new(peripherals.port_19, Gearset::Blue, Direction::Forward),
+        Motor::new(peripherals.port_20, Gearset::Blue, Direction::Forward),
     ]);
 
     // Initialize the tracking context for odometry so we can share it with
@@ -92,7 +105,11 @@ async fn main(peripherals: Peripherals) {
             tracking.clone(),
             f64::INFINITY,
         ),
-        intake: Intake::new(Motor::new_exp(peripherals.port_20, Direction::Forward)),
+        intake: Intake::new(Motor::new_exp(peripherals.port_9, Direction::Forward)),
+        lift: subsystems::lift::Lift::new(
+            Motor::new(peripherals.port_10, Gearset::Blue, Direction::Forward),
+            Motor::new(peripherals.port_1, Gearset::Blue, Direction::Forward),
+        ),
         tracking: tracking.clone(),
         match_loader: MatchLoader::new([AdiDigitalOut::new(peripherals.adi_a)]),
     };
