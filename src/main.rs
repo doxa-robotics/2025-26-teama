@@ -105,10 +105,10 @@ async fn main(peripherals: Peripherals) {
             tracking.clone(),
             f64::INFINITY,
         ),
-        intake: Intake::new(Motor::new_exp(peripherals.port_9, Direction::Forward)),
+        intake: Intake::new(Motor::new_exp(peripherals.port_10, Direction::Forward)),
         lift: subsystems::lift::Lift::new(
-            Motor::new(peripherals.port_10, Gearset::Blue, Direction::Forward),
-            Motor::new(peripherals.port_1, Gearset::Blue, Direction::Forward),
+            Motor::new(peripherals.port_9, Gearset::Blue, Direction::Forward),
+            Motor::new(peripherals.port_15, Gearset::Blue, Direction::Forward),
         ),
         tracking: tracking.clone(),
         match_loader: MatchLoader::new([AdiDigitalOut::new(peripherals.adi_a)]),
