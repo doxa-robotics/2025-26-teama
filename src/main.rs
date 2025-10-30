@@ -91,7 +91,7 @@ async fn main(peripherals: Peripherals) {
             0.0,
             0.0,
             libdoxa::subsystems::tracking::wheel::TrackingWheelMountingDirection::Parallel,
-            RotationSensor::new(peripherals.port_7, Direction::Forward),
+            RotationSensor::new(peripherals.port_17, Direction::Forward),
         )],
         InertialSensor::new(peripherals.port_8),
     );
