@@ -19,7 +19,7 @@ compress = true
 
 [dependencies]
 async-trait = "0.1.89"
-doxa-selector = { path = "../doxa-selector-rs", features = ["ui"] }
+doxa-selector = { path = "../doxa-selector-rs" }
 log = "0.4.22"
 libdoxa = { path = "../libdoxa", features = ["unsafe_debug_render"] }
 snafu = "0.8.5"
@@ -34,3 +34,7 @@ nalgebra = { version = "0.33.2", default-features = false, features = [
 [dependencies.vexide]
 version = "0.8.0-alpha.2"
 features = ["full", "vex-sdk-jumptable", "vex-sdk-mock"]
+
+[features]
+default = ["ui"]
+ui = ["doxa-selector/ui"]

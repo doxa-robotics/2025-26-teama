@@ -37,6 +37,14 @@ impl Intake {
         Ok(())
     }
 
+    /// Reverse the front intake motor to outtake objects.
+    pub fn reverse_front_intake(&mut self) -> Result<(), IntakeError> {
+        self.front_intake
+            .set_voltage(-self.front_intake.max_voltage())
+            .context(FrontIntakeSnafu)?;
+        Ok(())
+    }
+
     /// Deactivates the front intake.
     pub fn brake(&mut self) -> Result<(), IntakeError> {
         // We coast to reduce thermal buildup as a result of braking

@@ -57,7 +57,11 @@ pub async fn opcontrol(robot: &mut Robot) -> Result<!, OpcontrolError> {
 
         if state.button_r1.is_now_pressed() {
             robot.intake.activate_front_intake().context(IntakeSnafu)?;
-        } else if state.button_r1.is_now_released() {
+        }
+        if state.button_r2.is_now_pressed() {
+            robot.intake.reverse_front_intake().context(IntakeSnafu)?;
+        }
+        if state.button_r1.is_now_released() || state.button_r2.is_now_released() {
             robot.intake.brake().context(IntakeSnafu)?;
         }
 
