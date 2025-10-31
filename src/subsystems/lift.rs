@@ -40,7 +40,7 @@ impl Lift {
     pub fn lift_to_medium(&mut self) -> Result<(), LiftError> {
         // Lower lift motor spins forward to lift the balls.
         self.lower_lift_motor
-            .set_voltage(self.lower_lift_motor.max_voltage())
+            .set_voltage(self.lower_lift_motor.max_voltage() * 0.8)
             .context(PortSnafu)?;
         // Upper lift motor spins backward to position for medium goal.
         self.upper_lift_motor
@@ -53,7 +53,7 @@ impl Lift {
     pub fn lift_to_high(&mut self) -> Result<(), LiftError> {
         // Lower lift motor spins forward to lift the balls.
         self.lower_lift_motor
-            .set_voltage(self.lower_lift_motor.max_voltage())
+            .set_voltage(self.lower_lift_motor.max_voltage() * 0.8)
             .context(PortSnafu)?;
         // Upper lift motor spins forward to position for high goal.
         self.upper_lift_motor
