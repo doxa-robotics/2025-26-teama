@@ -10,23 +10,14 @@ use libdoxa::subsystems::{
 use vexide::{prelude::*, startup::banner::themes::THEME_OFFICIAL_LOGO};
 use vexide_motorgroup::{SharedMotors, motor_group};
 
-use crate::subsystems::{intake::Intake, lift::Lift, match_loader::MatchLoader};
+use crate::{
+    routes::Category,
+    subsystems::{intake::Intake, lift::Lift, match_loader::MatchLoader},
+};
 
 mod opcontrol;
+mod routes;
 mod subsystems;
-
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
-enum Category {
-    Default,
-}
-
-impl std::fmt::Display for Category {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Category::Default => write!(f, "Default"),
-        }
-    }
-}
 
 struct Robot {
     controller: Controller,
@@ -38,6 +29,10 @@ struct Robot {
     lift: Lift,
     match_loader: MatchLoader,
 }
+
+// SAFETY: single-threaded
+unsafe impl Send for Robot {}
+unsafe impl Sync for Robot {}
 
 impl CompeteWithSelector for Robot {
     type Category = Category;
@@ -52,8 +47,11 @@ impl CompeteWithSelector for Robot {
     where
         Self: 'a,
     {
-        let mut map = std::collections::BTreeMap::new();
-        map.insert(Category::Default, vec![]);
+        let mut map: std::collections::BTreeMap<
+            Category,
+            Vec<&dyn doxa_selector::AutonRoutine<Self, Return = Self::Return>>,
+        > = std::collections::BTreeMap::new();
+        map.insert(Category::Left, vec![&routes::FirstRoute]);
         map
     }
 
@@ -88,12 +86,12 @@ async fn main(peripherals: Peripherals) {
     let tracking = TrackingSubsystem::new::<RotationSensor, RotationSensor, InertialSensor>(
         [],
         [TrackingWheel::new(
-            0.0,
-            0.0,
+            158.0,
+            24.0,
             libdoxa::subsystems::tracking::wheel::TrackingWheelMountingDirection::Parallel,
             RotationSensor::new(peripherals.port_17, Direction::Forward),
         )],
-        InertialSensor::new(peripherals.port_8),
+        InertialSensor::new(peripherals.port_14),
     );
 
     let robot = Robot {

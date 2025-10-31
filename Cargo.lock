@@ -903,7 +903,6 @@ dependencies = [
 [[package]]
 name = "doxa-selector"
 version = "0.2.0"
-source = "git+https://github.com/doxa-robotics/doxa-selector-rs.git?rev=68681fc#68681fc01ad5ee07c4477c7eee3e097dd85f405f"
 dependencies = [
  "async-trait",
  "slint",
@@ -4033,9 +4032,11 @@ checksum = "61c41af27dd6d1e27b1b16b489db798443478cef1f06a660c96db617ba5de3b1"
 name = "teama-2025-26"
 version = "0.1.0"
 dependencies = [
+ "async-trait",
  "doxa-selector",
  "libdoxa",
  "log",
+ "nalgebra 0.33.2",
  "pid",
  "snafu",
  "vexide",

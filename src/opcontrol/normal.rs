@@ -72,7 +72,12 @@ pub async fn opcontrol(robot: &mut Robot) -> Result<!, OpcontrolError> {
         }
 
         // y is match load
-        
+
+        if state.button_y.is_now_pressed() {
+            robot.match_loader.toggle();
+        }
+
+        println!("{:?}", robot.tracking.current());
 
         sleep(Duration::from_millis(10)).await;
     }
