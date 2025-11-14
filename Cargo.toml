@@ -24,7 +24,7 @@ log = "0.4.22"
 libdoxa = { path = "../libdoxa", features = ["unsafe_debug_render"] }
 snafu = "0.8.5"
 pid = "4.0.0"
-vexide-motorgroup = "2.2.0-alpha.5"
+vexide-motorgroup = "2.2.0-alpha.6"
 nalgebra = { version = "0.33.2", default-features = false, features = [
   "macros",
   "alloc",

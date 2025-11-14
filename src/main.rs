@@ -90,27 +90,35 @@ impl CompeteWithSelector for Robot {
 async fn main(peripherals: Peripherals) {
     // The drivetrain motors
     let left_motors = SharedMotors::new(motor_group![
-        Motor::new(peripherals.port_11, Gearset::Blue, Direction::Reverse),
-        Motor::new(peripherals.port_12, Gearset::Blue, Direction::Reverse),
+        Motor::new(peripherals.port_16, Gearset::Blue, Direction::Reverse),
         Motor::new(peripherals.port_13, Gearset::Blue, Direction::Reverse),
+        Motor::new(peripherals.port_1, Gearset::Blue, Direction::Reverse),
     ]);
     let right_motors = SharedMotors::new(motor_group![
-        Motor::new(peripherals.port_18, Gearset::Blue, Direction::Forward),
+        Motor::new(peripherals.port_14, Gearset::Blue, Direction::Forward),
         Motor::new(peripherals.port_19, Gearset::Blue, Direction::Forward),
-        Motor::new(peripherals.port_20, Gearset::Blue, Direction::Forward),
+        Motor::new(peripherals.port_10, Gearset::Blue, Direction::Forward),
     ]);
 
     // Initialize the tracking context for odometry so we can share it with
     // Drivetrain
-    let tracking = TrackingSubsystem::new::<RotationSensor, RotationSensor, InertialSensor>(
+    let tracking = TrackingSubsystem::new::<RotationSensor, SharedMotors, InertialSensor>(
         [],
-        [TrackingWheel::new(
-            158.0,
-            24.0,
-            libdoxa::subsystems::tracking::wheel::TrackingWheelMountingDirection::Parallel,
-            RotationSensor::new(peripherals.port_17, Direction::Forward),
-        )],
-        InertialSensor::new(peripherals.port_14),
+        [
+            TrackingWheel::new(
+                565.0,
+                0.0,
+                libdoxa::subsystems::tracking::wheel::TrackingWheelMountingDirection::Parallel,
+                SharedMotors(left_motors.0.clone()),
+            ),
+            TrackingWheel::new(
+                565.0,
+                0.0,
+                libdoxa::subsystems::tracking::wheel::TrackingWheelMountingDirection::Parallel,
+                SharedMotors(right_motors.0.clone()),
+            ),
+        ],
+        InertialSensor::new(peripherals.port_15),
     );
 
     let robot = Robot {
@@ -122,10 +130,14 @@ async fn main(peripherals: Peripherals) {
             tracking.clone(),
             f64::INFINITY,
         ),
-        intake: Intake::new(Motor::new_exp(peripherals.port_10, Direction::Forward)),
+        intake: Intake::new(Motor::new(
+            peripherals.port_12,
+            Gearset::Blue,
+            Direction::Forward,
+        )),
         lift: subsystems::lift::Lift::new(
-            Motor::new(peripherals.port_9, Gearset::Blue, Direction::Forward),
-            Motor::new_exp(peripherals.port_15, Direction::Forward),
+            Motor::new_exp(peripherals.port_20, Direction::Forward),
+            Motor::new_exp(peripherals.port_11, Direction::Forward),
         ),
         tracking: tracking.clone(),
         match_loader: MatchLoader::new([AdiDigitalOut::new(peripherals.adi_a)]),
