@@ -56,7 +56,8 @@ impl CompeteWithSelector for Robot {
     }
 
     async fn driver(&mut self) {
-        while let Err(err) = opcontrol::normal::opcontrol(self).await {
+        loop {
+            let Err(err) = opcontrol::normal::opcontrol(self).await;
             log::error!("Opcontrol error: {}", err);
             sleep(Duration::from_millis(100)).await;
         }
@@ -64,6 +65,24 @@ impl CompeteWithSelector for Robot {
 
     fn controller(&self) -> Option<&vexide::controller::Controller> {
         Some(&self.controller)
+    }
+
+    fn is_gyro_calibrating(&self) -> bool {
+        self.tracking.is_gyro_calibrating()
+    }
+
+    fn diagnostics(&self) -> Vec<(String, String)> {
+        vec![
+            ("Mood of robot".to_string(), "Happy".to_string()),
+            (
+                "Mood of drive team".to_string(),
+                "Hopefully happy".to_string(),
+            ),
+            (
+                "Heading".to_string(),
+                format!("{:?}", self.tracking.current().heading),
+            ),
+        ]
     }
 }
 

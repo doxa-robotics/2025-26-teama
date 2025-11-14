@@ -38,7 +38,7 @@ pub const CONFIG: ActionConfig = ActionConfig {
     linear_tolerance_duration: Duration::from_millis(0),
     linear_timeout: Duration::from_millis(1500),
     turn_error_tolerance: 0.1,
-    turn_velocity_tolerance: 200.0,
+    turn_velocity_tolerance: 0.01,
     turn_tolerance_duration: Duration::from_millis(0),
     turn_timeout: Duration::from_millis(1000),
 };
@@ -51,6 +51,13 @@ pub fn forward(
         distance_tiles * TILES_TO_MM,
         config,
     )
+}
+
+pub fn rotation(
+    target: f64,
+    config: ActionConfig,
+) -> impl libdoxa::subsystems::drivetrain::actions::Action {
+    libdoxa::subsystems::drivetrain::actions::RotationAction::new(target, config)
 }
 
 pub fn turn_to_point(
