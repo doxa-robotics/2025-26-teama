@@ -1,5 +1,5 @@
 use snafu::ResultExt;
-use vexide::smart::motor::Motor;
+use vexide::{math::Direction, smart::motor::Motor};
 
 #[derive(Debug, snafu::Snafu)]
 pub enum LiftError {
@@ -34,6 +34,25 @@ impl Lift {
             lower_lift_motor,
             upper_lift_motor,
         }
+    }
+
+    /// Activates the lower lift motor in order to intake
+    pub fn intake(&mut self, direction: Direction) -> Result<(), LiftError> {
+        // Lower lift motor raises balls to middle level.
+        // Top one doesn't run.
+        self.lower_lift_motor
+            .set_voltage(
+                self.lower_lift_motor.max_voltage()
+                    * match direction {
+                        Direction::Forward => 1.0,
+                        Direction::Reverse => -1.0,
+                    },
+            )
+            .context(PortSnafu)?;
+        self.upper_lift_motor
+            .brake(vexide::smart::motor::BrakeMode::Brake)
+            .context(PortSnafu)?;
+        Ok(())
     }
 
     /// Activates the lift motors to lift balls to the medium goal.
