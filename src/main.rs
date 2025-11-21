@@ -118,7 +118,12 @@ async fn main(peripherals: Peripherals) {
                 SharedMotors(right_motors.0.clone()),
             ),
         ],
-        InertialSensor::new(peripherals.port_15),
+        {
+            let mut i = InertialSensor::new(peripherals.port_15);
+            _ = i.set_rotation(0.0);
+            _ = i.set_heading(0.0);
+            i
+        },
     );
 
     let robot = Robot {
@@ -143,7 +148,9 @@ async fn main(peripherals: Peripherals) {
         match_loader: MatchLoader::new([AdiDigitalOut::new(peripherals.adi_a)]),
     };
 
-    robot.compete_with_selector(peripherals.display, None).await;
+    robot
+        .compete_with_selector(peripherals.display, Some(&routes::FirstRoute))
+        .await;
 }
 
 #[cfg(test)]
