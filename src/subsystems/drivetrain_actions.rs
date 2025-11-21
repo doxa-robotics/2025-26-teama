@@ -10,18 +10,18 @@ use vexide::math::Angle;
 pub const TILES_TO_MM: f64 = 600.0;
 
 pub const CONFIG: ActionConfig = ActionConfig {
-    linear_kp: 2.0,
+    linear_kp: 1.2,
     linear_kp_limit: f64::MAX,
     linear_ki: 0.0,
     linear_ki_limit: f64::MAX,
     linear_kd: 6.0,
     linear_kd_limit: f64::MAX,
     linear_limit: 450.0,
-    turn_kp: 200.0,
+    turn_kp: 150.0,
     turn_kp_limit: f64::MAX,
-    turn_ki: 10.0,
+    turn_ki: 0.0,
     turn_ki_limit: 1.0,
-    turn_kd: 450.0,
+    turn_kd: 350.0,
     turn_kd_limit: f64::MAX,
     turn_limit: 450.0,
     boomerang_lock_distance: None,
@@ -37,10 +37,10 @@ pub const CONFIG: ActionConfig = ActionConfig {
     linear_velocity_tolerance: 200.0,
     linear_tolerance_duration: Duration::from_millis(0),
     linear_timeout: Duration::from_millis(1500),
-    turn_error_tolerance: 0.1,
-    turn_velocity_tolerance: 0.01,
+    turn_error_tolerance: 0.05,
+    turn_velocity_tolerance: 0.005,
     turn_tolerance_duration: Duration::from_millis(0),
-    turn_timeout: Duration::from_millis(1000),
+    turn_timeout: Duration::from_millis(2000),
 };
 
 pub fn forward(
