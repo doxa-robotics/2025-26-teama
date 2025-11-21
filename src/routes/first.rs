@@ -6,7 +6,7 @@ use vexide::{math::Angle, time::sleep};
 
 use crate::{
     Robot,
-    subsystems::drivetrain_actions::{CONFIG, drive_to_point, forward, rotation, turn_to_point},
+    subsystems::drivetrain_actions::{CONFIG, forward, rotation, turn_to_point},
 };
 
 pub struct FirstRoute;
