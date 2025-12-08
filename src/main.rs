@@ -12,7 +12,7 @@ use vexide_motorgroup::{SharedMotors, motor_group};
 
 use crate::{
     routes::Category,
-    subsystems::{intake::Intake, match_loader::MatchLoader},
+    subsystems::{double_park::DoublePark, intake::Intake, match_loader::MatchLoader},
 };
 
 mod opcontrol;
@@ -27,6 +27,8 @@ struct Robot {
 
     intake: Intake,
     match_loader: MatchLoader,
+
+    double_park: DoublePark,
 }
 
 // SAFETY: single-threaded
@@ -133,6 +135,7 @@ async fn main(peripherals: Peripherals) {
         ),
         tracking: tracking.clone(),
         match_loader: MatchLoader::new([AdiDigitalOut::new(peripherals.adi_a)]),
+        double_park: DoublePark::new([AdiDigitalOut::new(peripherals.adi_b)]),
     };
 
     robot

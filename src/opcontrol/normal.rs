@@ -63,9 +63,13 @@ pub async fn opcontrol(robot: &mut Robot) -> Result<!, OpcontrolError> {
         }
 
         // y is match load
-
-        if state.button_y.is_now_pressed() {
+        if state.button_a.is_now_pressed() {
             robot.match_loader.toggle();
+        }
+
+        // power button is double park
+        if state.button_power.is_now_pressed() {
+            robot.double_park.toggle();
         }
 
         println!("{:?}", robot.tracking.current());
