@@ -7,7 +7,7 @@ use libdoxa::subsystems::{
     drivetrain::Drivetrain,
     tracking::{TrackingSubsystem, wheel::TrackingWheel},
 };
-use vexide::{prelude::*, startup::banner::themes::THEME_OFFICIAL_LOGO};
+use vexide::{math::Angle, prelude::*, startup::banner::themes::THEME_OFFICIAL_LOGO};
 use vexide_motorgroup::{SharedMotors, motor_group};
 
 use crate::{
@@ -111,8 +111,8 @@ async fn main(peripherals: Peripherals) {
         )],
         {
             let mut i = InertialSensor::new(peripherals.port_15);
-            _ = i.set_rotation(0.0);
-            _ = i.set_heading(0.0);
+            _ = i.set_rotation(Angle::ZERO);
+            _ = i.set_heading(Angle::ZERO);
             i
         },
     );
