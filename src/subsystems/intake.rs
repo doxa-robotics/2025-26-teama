@@ -1,5 +1,9 @@
+use std::{cell::RefCell, rc::Rc};
+
 use snafu::ResultExt;
-use vexide::smart::motor::Motor;
+use vexide::smart::{SmartDevice, motor::Motor};
+
+use crate::utils::device_disconnected_error::DeviceDisconnectedErrorExt;
 
 #[derive(Clone, Copy, Debug)]
 pub enum OuttakeMode {
@@ -25,111 +29,108 @@ pub enum IntakeError {
 /// This subsystem is responsible for controlling the intake mechanism,
 /// which includes the front intake motor and (later in the season) the color
 /// sorter mechanism.
+///
+/// # Hardware
+///
+/// - Front Intake motor: Powers the intake mechanism and the first stage of the lift.
+/// - Middle Lift motor: Powers the middle stage of the lift.
+/// - Top Lift motor: Powers the top stage of the lift and controls the direction
+///   for outtaking to different goals.
 pub struct Intake {
-    /// The motor responsible for the front intake mechanism.
-    ///
-    /// It powers the intake and the first stage of the lift.
-    intake: Motor,
-    /// The motor responsible for the middle lift stage.
-    middle: Motor,
-    /// The motor responsible for the top lift stage and direction control.
-    ///
-    /// Forward direction results in upper long goal outtake, reverse direction
-    /// results in middle goal outtake.
-    top: Motor,
-
     /// The current control state of the intake subsystem.
-    control: Option<IntakeControl>,
+    control: Rc<RefCell<Option<IntakeControl>>>,
+
+    _task: vexide::task::Task<()>,
 }
 
 impl Intake {
     /// Creates a new instance of the Intake subsystem.
-    pub fn new(intake: Motor, middle: Motor, top: Motor) -> Self {
+    pub fn new(mut intake: Motor, mut middle: Motor, mut top: Motor) -> Self {
+        let control = Rc::new(RefCell::new(None));
+
         Self {
-            intake,
-            middle,
-            top,
-            control: None,
+            control: control.clone(),
+            _task: vexide::task::spawn(async move {
+                loop {
+                    vexide::time::sleep(Motor::UPDATE_INTERVAL);
+
+                    if let Some(control) = *control.borrow() {
+                        let factor = if control.reverse { -1.0 } else { 1.0 };
+                        intake
+                            .set_voltage(factor * intake.max_voltage())
+                            .report_if_error();
+                        middle
+                            .set_voltage(factor * middle.max_voltage())
+                            .report_if_error();
+
+                        match control.outtake {
+                            OuttakeMode::Long => {
+                                top.set_voltage(factor * top.max_voltage())
+                                    .report_if_error();
+                            }
+                            OuttakeMode::TopMiddle => {
+                                top.set_voltage(factor * -top.max_voltage())
+                                    .report_if_error();
+                            }
+                            OuttakeMode::None => {
+                                top.brake(vexide::smart::motor::BrakeMode::Hold)
+                                    .report_if_error();
+                            }
+                        }
+                    } else {
+                        intake
+                            .brake(vexide::smart::motor::BrakeMode::Coast)
+                            .report_if_error();
+                        top.brake(vexide::smart::motor::BrakeMode::Coast)
+                            .report_if_error();
+                        middle
+                            .brake(vexide::smart::motor::BrakeMode::Coast)
+                            .report_if_error();
+                    }
+                }
+            }),
         }
-    }
-
-    pub fn update(&mut self, control: Option<IntakeControl>) -> Result<(), IntakeError> {
-        self.control = control;
-
-        if let Some(control) = control {
-            let factor = if control.reverse { -1.0 } else { 1.0 };
-            self.intake
-                .set_voltage(factor * self.intake.max_voltage())
-                .context(FrontIntakeSnafu {})?;
-            self.middle
-                .set_voltage(factor * self.middle.max_voltage())
-                .context(FrontIntakeSnafu {})?;
-
-            match control.outtake {
-                OuttakeMode::Long => {
-                    self.top
-                        .set_voltage(factor * self.top.max_voltage())
-                        .context(FrontIntakeSnafu {})?;
-                }
-                OuttakeMode::TopMiddle => {
-                    self.top
-                        .set_voltage(factor * -self.top.max_voltage())
-                        .context(FrontIntakeSnafu {})?;
-                }
-                OuttakeMode::None => {
-                    self.top
-                        .brake(vexide::smart::motor::BrakeMode::Hold)
-                        .context(FrontIntakeSnafu {})?;
-                }
-            }
-        } else {
-            self.intake
-                .brake(vexide::smart::motor::BrakeMode::Coast)
-                .context(FrontIntakeSnafu {})?;
-            self.top
-                .brake(vexide::smart::motor::BrakeMode::Coast)
-                .context(FrontIntakeSnafu {})?;
-            self.middle
-                .brake(vexide::smart::motor::BrakeMode::Coast)
-                .context(FrontIntakeSnafu {})?;
-        }
-        Ok(())
     }
 
     /// Get the current control state
     pub fn control(&self) -> Option<IntakeControl> {
-        self.control
+        *self.control.borrow()
     }
 
     /// Intake
-    pub fn intake(&mut self) -> Result<(), IntakeError> {
-        self.update(Some(IntakeControl {
+    pub fn intake(&mut self) {
+        self.control.replace(Some(IntakeControl {
             reverse: false,
             outtake: OuttakeMode::None,
-        }))
+        }));
     }
 
     /// Reverse intake
-    pub fn reverse_intake(&mut self) -> Result<(), IntakeError> {
-        self.update(Some(IntakeControl {
+    pub fn reverse_intake(&mut self) {
+        self.control.replace(Some(IntakeControl {
             reverse: true,
             outtake: OuttakeMode::None,
-        }))
+        }));
     }
 
     /// Outtake to long goal
-    pub fn outtake_long(&mut self) -> Result<(), IntakeError> {
-        self.update(Some(IntakeControl {
+    pub fn outtake_long(&mut self) {
+        self.control.replace(Some(IntakeControl {
             reverse: false,
             outtake: OuttakeMode::Long,
-        }))
+        }));
     }
 
     /// Outtake to the top middle goal
-    pub fn outtake_top_middle(&mut self) -> Result<(), IntakeError> {
-        self.update(Some(IntakeControl {
+    pub fn outtake_top_middle(&mut self) {
+        self.control.replace(Some(IntakeControl {
             reverse: false,
             outtake: OuttakeMode::TopMiddle,
-        }))
+        }));
+    }
+
+    /// Stop all intake actions
+    pub fn brake(&mut self) {
+        self.control.replace(None);
     }
 }
