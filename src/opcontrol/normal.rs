@@ -33,7 +33,7 @@ pub enum OpcontrolError {
 }
 
 pub async fn opcontrol(robot: &mut Robot) -> Result<!, OpcontrolError> {
-    robot.intake.update(None).context(IntakeSnafu)?;
+    robot.intake.brake();
 
     loop {
         let state = robot.controller.state().context(ControllerStateSnafu)?;
@@ -51,15 +51,15 @@ pub async fn opcontrol(robot: &mut Robot) -> Result<!, OpcontrolError> {
         });
 
         if state.button_l1.is_pressed() {
-            _ = robot.intake.outtake_long();
+            robot.intake.outtake_long();
         } else if state.button_l2.is_pressed() {
-            _ = robot.intake.outtake_top_middle();
+            robot.intake.outtake_top_middle();
         } else if state.button_r1.is_pressed() {
-            _ = robot.intake.intake();
+            robot.intake.intake();
         } else if state.button_r2.is_pressed() {
-            _ = robot.intake.reverse_intake();
+            robot.intake.reverse_intake();
         } else {
-            _ = robot.intake.update(None);
+            robot.intake.brake();
         }
 
         // y is match load
