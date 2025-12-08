@@ -18,6 +18,7 @@ use crate::{
 mod opcontrol;
 mod routes;
 mod subsystems;
+mod utils;
 
 struct Robot {
     controller: Controller,
