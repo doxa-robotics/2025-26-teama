@@ -78,7 +78,7 @@ impl Intake {
                 }
                 OuttakeMode::None => {
                     self.top
-                        .brake(vexide::smart::motor::BrakeMode::Brake)
+                        .brake(vexide::smart::motor::BrakeMode::Hold)
                         .context(FrontIntakeSnafu {})?;
                 }
             }
