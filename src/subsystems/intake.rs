@@ -52,7 +52,7 @@ impl Intake {
             control: control.clone(),
             _task: vexide::task::spawn(async move {
                 loop {
-                    vexide::time::sleep(Motor::UPDATE_INTERVAL);
+                    vexide::time::sleep(Motor::UPDATE_INTERVAL).await;
 
                     if let Some(control) = *control.borrow() {
                         let factor = if control.reverse { -1.0 } else { 1.0 };
