@@ -1,6 +1,5 @@
 use std::{cell::RefCell, rc::Rc};
 
-use snafu::ResultExt;
 use vexide::smart::{SmartDevice, motor::Motor};
 
 use crate::utils::device_disconnected_error::DeviceDisconnectedErrorExt;
@@ -16,12 +15,6 @@ pub enum OuttakeMode {
 pub struct IntakeControl {
     pub reverse: bool,
     pub outtake: OuttakeMode,
-}
-
-#[derive(Debug, snafu::Snafu)]
-pub enum IntakeError {
-    #[snafu(display("Failed to control front intake motor: {}", source))]
-    FrontIntake { source: vexide::smart::PortError },
 }
 
 /// Represents the intake subsystem of the robot.

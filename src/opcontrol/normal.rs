@@ -18,14 +18,6 @@ fn curve_turn(input: f64) -> f64 {
 
 #[derive(Debug, Snafu)]
 pub enum OpcontrolError {
-    #[snafu(display("Failed to control drivetrain: {}", source))]
-    Drivetrain { source: vexide::smart::PortError },
-
-    #[snafu(display("Failed to control intake: {}", source))]
-    Intake {
-        source: crate::subsystems::intake::IntakeError,
-    },
-
     #[snafu(display("Failed to get controller state: {}", source))]
     ControllerState {
         source: vexide::controller::ControllerError,
