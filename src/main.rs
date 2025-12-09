@@ -133,6 +133,8 @@ async fn main(peripherals: Peripherals) {
             Motor::new(peripherals.port_2, Gearset::Blue, Direction::Reverse),
             Motor::new_exp(peripherals.port_3, Direction::Forward),
             Motor::new_exp(peripherals.port_18, Direction::Reverse),
+            DistanceSensor::new(peripherals.port_13),
+            100,
         ),
         tracking: tracking.clone(),
         match_loader: MatchLoader::new([AdiDigitalOut::new(peripherals.adi_a)]),
