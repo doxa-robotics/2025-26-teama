@@ -42,15 +42,32 @@ pub async fn opcontrol(robot: &mut Robot) -> Result<!, OpcontrolError> {
             units: libdoxa::subsystems::drivetrain::drivetrain_pair::DrivetrainUnits::Voltage,
         });
 
-        if state.button_l1.is_pressed() {
+        // L1 starts outtake long
+        if state.button_l1.is_now_pressed() {
             robot.intake.outtake_long();
-        } else if state.button_l2.is_pressed() {
+        }
+        // L2 starts outtake top middle
+        if state.button_l2.is_now_pressed() {
             robot.intake.outtake_top_middle();
-        } else if state.button_r1.is_pressed() {
+        }
+        // R1 starts intake
+        if state.button_r1.is_now_pressed() {
             robot.intake.intake();
-        } else if state.button_r2.is_pressed() {
+        }
+        // R2 starts reverse intake
+        if state.button_r2.is_now_pressed() {
             robot.intake.reverse_intake();
-        } else {
+        }
+        // Any button released stops intake if all intake buttons are released
+        if (state.button_l1.is_now_released()
+            || state.button_l2.is_now_released()
+            || state.button_r1.is_now_released()
+            || state.button_r2.is_now_released())
+            && !(state.button_l1.is_pressed()
+                || state.button_l2.is_pressed()
+                || state.button_r1.is_pressed()
+                || state.button_r2.is_pressed())
+        {
             robot.intake.brake();
         }
 
@@ -60,11 +77,24 @@ pub async fn opcontrol(robot: &mut Robot) -> Result<!, OpcontrolError> {
         }
 
         // power button is double park
+        // I've always wanted to find a use for the power button
         if state.button_power.is_now_pressed() {
-            robot.double_park.toggle();
+            let mut intake = robot.intake.clone();
+            let mut double_park = robot.double_park.clone();
+            vexide::task::spawn(async move {
+                // Reverse intake until the ball is positioned correctly.
+                intake.reverse_intake();
+                intake.wait_for_ball(None).await;
+                intake.brake(); // TODO: adjust timing based on testing
+                vexide::time::sleep(Duration::from_millis(500)).await;
+                // Once the ball is in, extend the double park mechanism to lift
+                // the robot.
+                double_park.extend();
+            })
+            .detach();
         }
 
-        println!("{:?}", robot.tracking.current());
+        // println!("{:?}", robot.tracking.current());
 
         sleep(Duration::from_millis(10)).await;
     }
