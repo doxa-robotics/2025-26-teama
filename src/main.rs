@@ -3,9 +3,12 @@
 use std::time::Duration;
 
 use doxa_selector::{CompeteWithSelector, CompeteWithSelectorExt};
-use libdoxa::subsystems::{
-    drivetrain::Drivetrain,
-    tracking::{TrackingSubsystem, wheel::TrackingWheel},
+use libdoxa::{
+    subsystems::{
+        drivetrain::Drivetrain,
+        tracking::{TrackingSubsystem, wheel::TrackingWheel},
+    },
+    utils::logger,
 };
 use vexide::{math::Angle, prelude::*, startup::banner::themes::THEME_OFFICIAL_LOGO};
 use vexide_motorgroup::{SharedMotors, motor_group};
@@ -90,6 +93,10 @@ impl CompeteWithSelector for Robot {
 
 #[vexide::main(banner(theme = THEME_OFFICIAL_LOGO))]
 async fn main(peripherals: Peripherals) {
+    // Initialize logging
+    logger::init("2025-26-teama.log", log::LevelFilter::Debug)
+        .expect("could not set logger. already set?");
+
     // The drivetrain motors
     let left_motors = SharedMotors::new(motor_group![
         Motor::new(peripherals.port_8, Gearset::Blue, Direction::Reverse),
