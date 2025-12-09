@@ -1,11 +1,10 @@
 use std::{cell::RefCell, rc::Rc};
 
+use libdoxa::utils::unwrap_expect_report::UnwrapExpectReportExt as _;
 use vexide::{
     prelude::DistanceSensor,
     smart::{SmartDevice, motor::Motor},
 };
-
-use crate::utils::unwrap_expect_report::UnwrapExpectReportExt;
 
 #[derive(Clone, Copy, Debug)]
 pub enum OuttakeMode {
