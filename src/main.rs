@@ -113,7 +113,7 @@ async fn main(peripherals: Peripherals) {
             RotationSensor::new(peripherals.port_9, Direction::Forward),
         )],
         {
-            let mut i = InertialSensor::new(peripherals.port_15);
+            let mut i = InertialSensor::new(peripherals.port_7);
             _ = i.set_rotation(Angle::ZERO);
             _ = i.set_heading(Angle::ZERO);
             i
