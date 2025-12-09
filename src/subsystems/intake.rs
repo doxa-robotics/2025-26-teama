@@ -5,7 +5,7 @@ use vexide::{
     smart::{SmartDevice, motor::Motor},
 };
 
-use crate::utils::device_disconnected_error::DeviceDisconnectedErrorExt;
+use crate::utils::unwrap_expect_report::UnwrapExpectReportExt;
 
 #[derive(Clone, Copy, Debug)]
 pub enum OuttakeMode {
@@ -121,23 +121,21 @@ impl Intake {
                         let factor = if control.reverse { -1.0 } else { 1.0 };
                         intake
                             .set_voltage(factor * intake.max_voltage())
-                            .report_if_error();
+                            .unwrap_report();
                         middle
                             .set_voltage(factor * middle.max_voltage())
-                            .report_if_error();
+                            .unwrap_report();
 
                         match control.outtake {
                             OuttakeMode::Long => {
-                                top.set_voltage(factor * top.max_voltage())
-                                    .report_if_error();
+                                top.set_voltage(factor * top.max_voltage()).unwrap_report();
                             }
                             OuttakeMode::TopMiddle => {
-                                top.set_voltage(factor * -top.max_voltage())
-                                    .report_if_error();
+                                top.set_voltage(factor * -top.max_voltage()).unwrap_report();
                             }
                             OuttakeMode::None => {
                                 top.brake(vexide::smart::motor::BrakeMode::Hold)
-                                    .report_if_error();
+                                    .unwrap_report();
                             }
                         }
                     } else {
@@ -145,12 +143,12 @@ impl Intake {
                         // Friction will hold balls in place
                         intake
                             .brake(vexide::smart::motor::BrakeMode::Coast)
-                            .report_if_error();
+                            .unwrap_report();
                         top.brake(vexide::smart::motor::BrakeMode::Coast)
-                            .report_if_error();
+                            .unwrap_report();
                         middle
                             .brake(vexide::smart::motor::BrakeMode::Coast)
-                            .report_if_error();
+                            .unwrap_report();
                     }
 
                     if let Ok(object) = ball_presence_sensor.object() {
