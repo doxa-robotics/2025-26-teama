@@ -1,9 +1,10 @@
-use std::{cell::RefCell, rc::Rc};
+use std::{cell::RefCell, pin::Pin, rc::Rc};
 
 use libdoxa::utils::unwrap_expect_report::UnwrapExpectReportExt as _;
 use vexide::{
     prelude::DistanceSensor,
     smart::{SmartDevice, motor::Motor},
+    time::{Sleep, sleep},
 };
 
 #[derive(Clone, Copy, Debug)]
@@ -17,6 +18,8 @@ pub enum OuttakeMode {
 pub struct IntakeControl {
     pub reverse: bool,
     pub outtake: OuttakeMode,
+    /// Speed from 0.0 to 1.0
+    pub speed: f64,
 }
 
 impl Default for IntakeControl {
@@ -24,6 +27,7 @@ impl Default for IntakeControl {
         Self {
             reverse: false,
             outtake: OuttakeMode::None,
+            speed: 1.0,
         }
     }
 }
@@ -43,10 +47,27 @@ impl Default for IntakeControl {
 /// condition is met, it returns `Poll::Pending`, indicating that the future is
 /// still waiting and the executor should continue polling it in future ticks
 /// (asking again later).
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 pub struct BallDetectedFuture {
     intake: Intake,
     timeout: Option<std::time::Instant>,
+    sleep: Sleep,
+}
+
+impl BallDetectedFuture {
+    /// Creates a new BallDetectedFuture.
+    ///
+    /// # Arguments
+    ///
+    /// * `intake` - The intake subsystem to monitor for ball detection.
+    /// * `timeout` - An optional duration after which the future will complete with `false` if no ball is detected.
+    pub fn new(intake: Intake, timeout: Option<std::time::Duration>) -> Self {
+        Self {
+            intake,
+            timeout: timeout.map(|t| std::time::Instant::now() + t),
+            sleep: sleep(DistanceSensor::UPDATE_INTERVAL),
+        }
+    }
 }
 
 impl std::future::Future for BallDetectedFuture {
@@ -54,20 +75,27 @@ impl std::future::Future for BallDetectedFuture {
 
     fn poll(
         self: std::pin::Pin<&mut Self>,
-        _cx: &mut std::task::Context<'_>,
+        cx: &mut std::task::Context<'_>,
     ) -> std::task::Poll<Self::Output> {
-        let ball_detected = *self.intake.ball_detected.borrow();
+        let self_mut = self.get_mut();
+        if Pin::new(&mut self_mut.sleep).poll(cx).is_pending() {
+            return std::task::Poll::Pending;
+        }
+
+        self_mut.sleep = sleep(DistanceSensor::UPDATE_INTERVAL);
+
+        let ball_detected = *self_mut.intake.ball_detected.borrow();
 
         if ball_detected {
             // Ball detected
             std::task::Poll::Ready(true)
-        } else if let Some(timeout) = self.timeout
+        } else if let Some(timeout) = self_mut.timeout
             && timeout <= std::time::Instant::now()
         {
             // There's a timeout and it has been reached
             std::task::Poll::Ready(false)
         } else {
-            std::task::Poll::Pending
+            Pin::new(&mut self_mut.sleep).poll(cx).map(|_| false)
         }
     }
 }
@@ -117,7 +145,7 @@ impl Intake {
                     // If the control state is set, apply it
                     if let Some(control) = *control.borrow() {
                         // Move backwards if reverse is set, otherwise move forwards
-                        let factor = if control.reverse { -1.0 } else { 1.0 };
+                        let factor = if control.reverse { -1.0 } else { 1.0 } * control.speed;
                         intake
                             .set_voltage(factor * intake.max_voltage())
                             .unwrap_report();
@@ -170,6 +198,7 @@ impl Intake {
         self.control.replace(Some(IntakeControl {
             reverse: false,
             outtake: OuttakeMode::None,
+            ..Default::default()
         }));
     }
 
@@ -178,6 +207,7 @@ impl Intake {
         self.control.replace(Some(IntakeControl {
             reverse: true,
             outtake: OuttakeMode::None,
+            ..Default::default()
         }));
     }
 
@@ -186,6 +216,7 @@ impl Intake {
         self.control.replace(Some(IntakeControl {
             reverse: false,
             outtake: OuttakeMode::Long,
+            ..Default::default()
         }));
     }
 
@@ -194,6 +225,7 @@ impl Intake {
         self.control.replace(Some(IntakeControl {
             reverse: false,
             outtake: OuttakeMode::TopMiddle,
+            ..Default::default()
         }));
     }
 
@@ -207,9 +239,16 @@ impl Intake {
     /// If `timeout` is `None`, waits indefinitely.
     #[must_use = "futures do nothing unless awaited"]
     pub fn wait_for_ball(&self, timeout: Option<std::time::Duration>) -> BallDetectedFuture {
-        BallDetectedFuture {
-            intake: self.clone(),
-            timeout: timeout.map(|t| std::time::Instant::now() + t),
-        }
+        BallDetectedFuture::new(self.clone(), timeout)
+    }
+
+    /// Check if a ball is currently detected
+    pub fn ball_detected(&self) -> bool {
+        *self.ball_detected.borrow()
+    }
+
+    /// Manually set control state
+    pub fn set_control(&mut self, control: Option<IntakeControl>) {
+        self.control.replace(control);
     }
 }
