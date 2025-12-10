@@ -27,6 +27,7 @@ pub enum OpcontrolError {
 pub async fn opcontrol(robot: &mut Robot) -> Result<!, OpcontrolError> {
     robot.intake.brake();
 
+    let mut double_park = false;
     loop {
         let state = robot.controller.state().context(ControllerStateSnafu)?;
 
@@ -79,19 +80,39 @@ pub async fn opcontrol(robot: &mut Robot) -> Result<!, OpcontrolError> {
         // power button is double park
         // I've always wanted to find a use for the power button
         if state.button_power.is_now_pressed() {
-            let mut intake = robot.intake.clone();
-            let mut double_park = robot.double_park.clone();
-            vexide::task::spawn(async move {
-                // Reverse intake until the ball is positioned correctly.
-                intake.reverse_intake();
-                intake.wait_for_ball(None).await;
-                intake.brake(); // TODO: adjust timing based on testing
-                vexide::time::sleep(Duration::from_millis(500)).await;
-                // Once the ball is in, extend the double park mechanism to lift
-                // the robot.
-                double_park.extend();
-            })
-            .detach();
+            double_park = !double_park;
+            if double_park {
+                let mut intake = robot.intake.clone();
+                let mut double_park = robot.double_park.clone();
+                vexide::task::spawn(async move {
+                    // Reverse intake until the ball is positioned correctly.
+                    intake.set_control(Some(crate::subsystems::intake::IntakeControl {
+                        reverse: true,
+                        outtake: crate::subsystems::intake::OuttakeMode::None,
+                        speed: 0.5,
+                    }));
+                    intake.wait_for_ball(None).await;
+                    vexide::time::sleep(Duration::from_millis(50)).await;
+                    intake.set_control(Some(crate::subsystems::intake::IntakeControl {
+                        reverse: true,
+                        outtake: crate::subsystems::intake::OuttakeMode::None,
+                        speed: 0.25,
+                    }));
+                    vexide::time::sleep(Duration::from_millis(50)).await;
+                    intake.brake();
+                    // vexide::time::sleep(Duration::from_millis(50)).await;
+                    // Once the ball is in, extend the double park mechanism to lift
+                    // the robot.
+                    double_park.extend();
+                    vexide::time::sleep(Duration::from_millis(100)).await;
+                    // intake.intake();
+                    vexide::time::sleep(Duration::from_millis(200)).await;
+                    intake.brake();
+                })
+                .detach();
+            } else {
+                robot.double_park.retract();
+            }
         }
 
         // println!("{:?}", robot.tracking.current());
