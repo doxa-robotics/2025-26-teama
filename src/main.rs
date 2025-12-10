@@ -114,10 +114,10 @@ async fn main(peripherals: Peripherals) {
     let tracking = TrackingSubsystem::new::<RotationSensor, RotationSensor, InertialSensor>(
         [],
         [TrackingWheel::new(
-            565.0,
-            0.0,
+            158.0,
+            10.0,
             libdoxa::subsystems::tracking::wheel::TrackingWheelMountingDirection::Parallel,
-            RotationSensor::new(peripherals.port_9, Direction::Forward),
+            RotationSensor::new(peripherals.port_9, Direction::Reverse),
         )],
         {
             let mut i = InertialSensor::new(peripherals.port_7);
