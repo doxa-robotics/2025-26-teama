@@ -57,6 +57,10 @@ impl CompeteWithSelector for Robot {
             Vec<&dyn doxa_selector::AutonRoutine<Self, Return = Self::Return>>,
         > = std::collections::BTreeMap::new();
         map.insert(Category::Left, vec![&routes::FirstRoute]);
+        map.insert(
+            Category::Other,
+            vec![&routes::NoneRoute, &routes::TestRoute],
+        );
         map
     }
 
@@ -149,7 +153,7 @@ async fn main(peripherals: Peripherals) {
     };
 
     robot
-        .compete_with_selector(peripherals.display, Some(&routes::FirstRoute))
+        .compete_with_selector(peripherals.display, Some(&routes::TestRoute))
         .await;
 }
 
