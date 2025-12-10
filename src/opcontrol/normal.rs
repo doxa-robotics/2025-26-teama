@@ -95,6 +95,32 @@ pub async fn opcontrol(robot: &mut Robot) -> Result<!, OpcontrolError> {
         }
 
         // println!("{:?}", robot.tracking.current());
+        {
+            let mut display = unsafe {
+                // SAFETY: not safe
+                vexide::display::Display::new()
+            };
+            display.fill(
+                &vexide::display::Rect::from_dimensions(
+                    vexide::math::Point2 { x: 300, y: 50 },
+                    150,
+                    100,
+                ),
+                vexide::color::Color::WHITE,
+            );
+            display.draw_text(
+                &vexide::display::Text::from_string(
+                    format!("{:.2?}", robot.tracking.current().offset),
+                    vexide::display::Font::new(
+                        vexide::display::FontSize::MEDIUM,
+                        vexide::display::FontFamily::Monospace,
+                    ),
+                    vexide::math::Point2 { x: 305, y: 55 },
+                ),
+                vexide::color::Color::BLACK,
+                None,
+            );
+        }
 
         sleep(Duration::from_millis(10)).await;
     }
