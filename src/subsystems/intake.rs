@@ -17,6 +17,7 @@ pub enum OuttakeMode {
 #[derive(Clone, Copy, Debug)]
 pub struct IntakeControl {
     pub reverse: bool,
+    pub run_intake: bool,
     pub outtake: OuttakeMode,
     /// Speed from 0.0 to 1.0
     pub speed: f64,
@@ -28,6 +29,7 @@ impl Default for IntakeControl {
             reverse: false,
             outtake: OuttakeMode::None,
             speed: 1.0,
+            run_intake: true,
         }
     }
 }
@@ -146,9 +148,15 @@ impl Intake {
                     if let Some(control) = *control.borrow() {
                         // Move backwards if reverse is set, otherwise move forwards
                         let factor = if control.reverse { -1.0 } else { 1.0 } * control.speed;
-                        intake
-                            .set_voltage(factor * intake.max_voltage())
-                            .unwrap_report();
+                        if control.run_intake {
+                            intake
+                                .set_voltage(factor * intake.max_voltage())
+                                .unwrap_report();
+                        } else {
+                            intake
+                                .brake(vexide::smart::motor::BrakeMode::Coast)
+                                .unwrap_report();
+                        }
                         middle
                             .set_voltage(factor * middle.max_voltage())
                             .unwrap_report();

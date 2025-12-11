@@ -6,6 +6,8 @@ use vexide::prelude::*;
 
 use crate::Robot;
 
+const OUTTAKE_REVERSE_DURATION: Duration = Duration::from_millis(150);
+
 fn curve_drive(input: f64) -> f64 {
     let raw = input.powf(2.0);
     if input >= 0.0 { raw } else { -raw }
@@ -28,6 +30,7 @@ pub async fn opcontrol(robot: &mut Robot) -> Result<!, OpcontrolError> {
     robot.intake.brake();
 
     let mut double_park = false;
+    let mut outtake_long_start: Option<std::time::Instant> = None;
     loop {
         let state = robot.controller.state().context(ControllerStateSnafu)?;
 
@@ -45,7 +48,22 @@ pub async fn opcontrol(robot: &mut Robot) -> Result<!, OpcontrolError> {
 
         // L1 starts outtake long
         if state.button_l1.is_now_pressed() {
+            // robot.intake.outtake_long();
+            robot
+                .intake
+                .set_control(Some(crate::subsystems::intake::IntakeControl {
+                    reverse: true,
+                    run_intake: false,
+                    ..Default::default()
+                }));
+            outtake_long_start = Some(std::time::Instant::now());
+        }
+        // If outtake long has been held for more than 500ms, switch to outtake long
+        if let Some(start) = outtake_long_start
+            && std::time::Instant::now().duration_since(start) >= OUTTAKE_REVERSE_DURATION
+        {
             robot.intake.outtake_long();
+            outtake_long_start = None;
         }
         // L2 starts outtake top middle
         if state.button_l2.is_now_pressed() {
@@ -70,6 +88,7 @@ pub async fn opcontrol(robot: &mut Robot) -> Result<!, OpcontrolError> {
                 || state.button_r2.is_pressed())
         {
             robot.intake.brake();
+            outtake_long_start = None;
         }
 
         // y is match load
@@ -90,6 +109,7 @@ pub async fn opcontrol(robot: &mut Robot) -> Result<!, OpcontrolError> {
                         reverse: true,
                         outtake: crate::subsystems::intake::OuttakeMode::None,
                         speed: 0.5,
+                        ..Default::default()
                     }));
                     intake.wait_for_ball(None).await;
                     vexide::time::sleep(Duration::from_millis(50)).await;
@@ -97,6 +117,7 @@ pub async fn opcontrol(robot: &mut Robot) -> Result<!, OpcontrolError> {
                         reverse: true,
                         outtake: crate::subsystems::intake::OuttakeMode::None,
                         speed: 0.25,
+                        ..Default::default()
                     }));
                     vexide::time::sleep(Duration::from_millis(50)).await;
                     intake.brake();
