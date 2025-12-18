@@ -3,7 +3,7 @@ use vexide::math::Angle;
 
 use crate::{
     Robot,
-    subsystems::drivetrain_actions::{CONFIG, forward},
+    subsystems::drivetrain_actions::{CONFIG, forward, turn_to_point},
 };
 
 pub struct TestRoute;
@@ -24,5 +24,11 @@ impl doxa_selector::AutonRoutine<Robot> for TestRoute {
         log::info!("Test route");
         robot.tracking.set_current(Point2::origin(), Angle::ZERO);
         robot.drivetrain.action(forward(0.5, CONFIG)).await;
+        // robot.drivetrain.action(forward(0.1, CONFIG)).await;
+        robot
+            .drivetrain
+            .action(turn_to_point(Point2::new(0.0, 1.0), CONFIG))
+            .await;
+        robot.drivetrain.action(forward(0.1, CONFIG)).await;
     }
 }
