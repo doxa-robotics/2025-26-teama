@@ -1,29 +1,26 @@
-use core::time::Duration;
+use std::time::Duration;
 
-use libdoxa::{
-    path_planner::cubic_parametric::CubicParametricPath,
-    subsystems::drivetrain::actions::config::ActionConfig,
-};
+use libdoxa::subsystems::drivetrain::actions::config::ActionConfig;
 use nalgebra::Point2;
-use vexide::math::Angle;
 
 pub const TILES_TO_MM: f64 = 600.0;
 
 pub const CONFIG: ActionConfig = ActionConfig {
-    linear_kp: 1.2,
+    linear_kp: 0.07,
     linear_kp_limit: f64::MAX,
-    linear_ki: 0.0,
-    linear_ki_limit: f64::MAX,
-    linear_kd: 6.0,
+    linear_ki: 0.00007,
+    linear_ki_limit: 4.0,
+    linear_kd: 0.3,
     linear_kd_limit: f64::MAX,
-    linear_limit: 450.0,
-    turn_kp: 150.0,
+    linear_limit: 9.0,
+
+    turn_kp: 25.0,
     turn_kp_limit: f64::MAX,
     turn_ki: 0.0,
     turn_ki_limit: 1.0,
-    turn_kd: 350.0,
+    turn_kd: 150.0,
     turn_kd_limit: f64::MAX,
-    turn_limit: 450.0,
+    turn_limit: 12.0,
     boomerang_lead: 0.4,
 
     pursuit_turn_kp: 500.0,
@@ -35,14 +32,14 @@ pub const CONFIG: ActionConfig = ActionConfig {
     pursuit_turn_limit: 450.0,
     pursuit_lookahead: 200.0,
 
-    linear_error_tolerance: 15.0,
-    linear_velocity_tolerance: 200.0,
-    linear_tolerance_duration: Duration::from_millis(0),
-    linear_timeout: Duration::from_millis(1500),
-    turn_error_tolerance: 0.05,
-    turn_velocity_tolerance: 0.005,
-    turn_tolerance_duration: Duration::from_millis(0),
-    turn_timeout: Duration::from_millis(2000),
+    linear_error_tolerance: 10.0,
+    linear_velocity_tolerance: 100.0,
+    linear_tolerance_duration: Duration::from_millis(100),
+    linear_timeout: Duration::from_millis(2000),
+    turn_error_tolerance: 0.1,
+    turn_velocity_tolerance: 100.0,
+    turn_tolerance_duration: Duration::from_millis(100),
+    turn_timeout: Duration::from_millis(1500),
 };
 
 pub fn forward(
@@ -75,14 +72,9 @@ pub fn turn_to_point(
 
 pub fn drive_to_point(
     point: Point2<f64>,
-    reverse: bool,
     config: ActionConfig,
 ) -> impl libdoxa::subsystems::drivetrain::actions::Action {
-    libdoxa::subsystems::drivetrain::actions::DriveToPointAction::new(
-        point * TILES_TO_MM,
-        reverse,
-        config,
-    )
+    libdoxa::subsystems::drivetrain::actions::DriveToPointAction::new(point * TILES_TO_MM, config)
 }
 
 // pub fn boomerang_to_point(
