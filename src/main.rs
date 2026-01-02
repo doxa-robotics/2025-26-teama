@@ -32,10 +32,6 @@ struct Robot {
     double_park: DoublePark,
 }
 
-// SAFETY: single-threaded
-unsafe impl Send for Robot {}
-unsafe impl Sync for Robot {}
-
 impl SelectCompete for Robot {
     async fn driver(&mut self) {
         log::info!("Lifecycle: driver");
