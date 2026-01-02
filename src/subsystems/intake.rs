@@ -221,6 +221,7 @@ impl Intake {
     }
 
     /// Get the current control state
+    #[allow(dead_code)]
     pub fn control(&self) -> Option<IntakeControl> {
         *self.control.borrow()
     }
@@ -275,6 +276,7 @@ impl Intake {
     }
 
     /// Check if a ball is currently detected
+    #[allow(dead_code)]
     pub fn ball_detected(&self) -> bool {
         *self.ball_detected.borrow()
     }

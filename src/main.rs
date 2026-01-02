@@ -1,7 +1,5 @@
 #![feature(never_type)]
 
-use std::time::Duration;
-
 use autons::prelude::{SelectCompete, SelectCompeteExt};
 use libdoxa::{
     subsystems::{
