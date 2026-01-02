@@ -56,7 +56,7 @@ impl CompeteWithSelector for Robot {
             Category,
             Vec<&dyn doxa_selector::AutonRoutine<Self, Return = Self::Return>>,
         > = std::collections::BTreeMap::new();
-        map.insert(Category::Left, vec![&routes::FirstRoute]);
+        map.insert(Category::Left, vec![&routes::LeftPrimaryRoute]);
         map.insert(
             Category::Other,
             vec![&routes::NoneRoute, &routes::TestRoute],
@@ -152,9 +152,17 @@ async fn main(peripherals: Peripherals) {
         double_park: DoublePark::new([AdiDigitalOut::new(peripherals.adi_b)]),
     };
 
-    robot
-        .compete_with_selector(peripherals.display, Some(&routes::TestRoute))
-        .await;
+    #[cfg(feature = "ui")]
+    {
+        robot.compete_with_selector(peripherals.display, None).await;
+    }
+
+    #[cfg(not(feature = "ui"))]
+    {
+        robot
+            .compete_with_selector(peripherals.display, Some(&routes::LeftPrimaryRoute))
+            .await;
+    }
 }
 
 #[cfg(test)]

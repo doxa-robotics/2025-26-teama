@@ -2,6 +2,7 @@ use std::time::Duration;
 
 use libdoxa::subsystems::drivetrain::actions::config::ActionConfig;
 use nalgebra::Point2;
+use vexide::math::Angle;
 
 pub const TILES_TO_MM: f64 = 600.0;
 
@@ -21,7 +22,9 @@ pub const CONFIG: ActionConfig = ActionConfig {
     turn_kd: 150.0,
     turn_kd_limit: f64::MAX,
     turn_limit: 12.0,
+
     boomerang_lead: 0.4,
+    boomerang_close: 200.0,
 
     pursuit_turn_kp: 500.0,
     pursuit_turn_kp_limit: f64::MAX,
@@ -45,7 +48,7 @@ pub const CONFIG: ActionConfig = ActionConfig {
 pub fn forward(
     distance_tiles: f64,
     config: ActionConfig,
-) -> impl libdoxa::subsystems::drivetrain::actions::Action {
+) -> libdoxa::subsystems::drivetrain::actions::ForwardAction {
     libdoxa::subsystems::drivetrain::actions::ForwardAction::new(
         distance_tiles * TILES_TO_MM,
         config,
@@ -55,14 +58,14 @@ pub fn forward(
 pub fn rotation(
     target: f64,
     config: ActionConfig,
-) -> impl libdoxa::subsystems::drivetrain::actions::Action {
+) -> libdoxa::subsystems::drivetrain::actions::RotationAction {
     libdoxa::subsystems::drivetrain::actions::RotationAction::new(target, config)
 }
 
 pub fn turn_to_point(
     point: Point2<f64>,
     config: ActionConfig,
-) -> impl libdoxa::subsystems::drivetrain::actions::Action {
+) -> libdoxa::subsystems::drivetrain::actions::TurnToPointAction {
     libdoxa::subsystems::drivetrain::actions::TurnToPointAction::new(
         point * TILES_TO_MM,
         false,
@@ -73,16 +76,21 @@ pub fn turn_to_point(
 pub fn drive_to_point(
     point: Point2<f64>,
     config: ActionConfig,
-) -> impl libdoxa::subsystems::drivetrain::actions::Action {
+) -> libdoxa::subsystems::drivetrain::actions::DriveToPointAction {
     libdoxa::subsystems::drivetrain::actions::DriveToPointAction::new(point * TILES_TO_MM, config)
 }
 
-// pub fn boomerang_to_point(
-//     point: Point2<f64>,
-//     config: ActionConfig,
-// ) -> impl libdoxa::subsystems::drivetrain::actions::Action {
-//     libdoxa::subsystems::drivetrain::actions::BoomerangAction::new(point * TILES_TO_MM, config)
-// }
+pub fn boomerang_to_point(
+    point: Point2<f64>,
+    heading: Angle,
+    config: ActionConfig,
+) -> libdoxa::subsystems::drivetrain::actions::BoomerangAction {
+    libdoxa::subsystems::drivetrain::actions::BoomerangAction::new(
+        point * TILES_TO_MM,
+        heading,
+        config,
+    )
+}
 
 // #[allow(unused)]
 // pub fn smooth_to_point(

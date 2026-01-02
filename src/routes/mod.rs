@@ -1,4 +1,5 @@
 mod first;
+mod left_primary;
 mod none;
 mod test;
 
@@ -18,5 +19,6 @@ impl std::fmt::Display for Category {
 }
 
 pub use first::FirstRoute;
+pub use left_primary::LeftPrimaryRoute;
 pub use none::NoneRoute;
 pub use test::TestRoute;

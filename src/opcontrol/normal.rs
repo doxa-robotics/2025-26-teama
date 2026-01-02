@@ -6,7 +6,7 @@ use vexide::prelude::*;
 
 use crate::Robot;
 
-const OUTTAKE_REVERSE_DURATION: Duration = Duration::from_millis(150);
+const OUTTAKE_REVERSE_DURATION: Duration = Duration::from_millis(350);
 
 fn curve_drive(input: f64) -> f64 {
     let raw = input.powf(2.0);
@@ -134,34 +134,6 @@ pub async fn opcontrol(robot: &mut Robot) -> Result<!, OpcontrolError> {
             } else {
                 robot.double_park.retract();
             }
-        }
-
-        // println!("{:?}", robot.tracking.current());
-        {
-            let mut display = unsafe {
-                // SAFETY: not safe
-                vexide::display::Display::new()
-            };
-            display.fill(
-                &vexide::display::Rect::from_dimensions(
-                    vexide::math::Point2 { x: 300, y: 50 },
-                    150,
-                    100,
-                ),
-                vexide::color::Color::WHITE,
-            );
-            display.draw_text(
-                &vexide::display::Text::from_string(
-                    format!("{:.2?}", robot.tracking.current().offset),
-                    vexide::display::Font::new(
-                        vexide::display::FontSize::MEDIUM,
-                        vexide::display::FontFamily::Monospace,
-                    ),
-                    vexide::math::Point2 { x: 305, y: 55 },
-                ),
-                vexide::color::Color::BLACK,
-                None,
-            );
         }
 
         sleep(Duration::from_millis(10)).await;
