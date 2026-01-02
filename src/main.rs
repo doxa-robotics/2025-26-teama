@@ -67,6 +67,7 @@ struct DoxaSelectInterface {
     gyro_calibrating: std::rc::Rc<std::cell::RefCell<bool>>,
     left_motors: SharedMotors,
     right_motors: SharedMotors,
+    intake_diagnostics: crate::subsystems::intake::IntakeDiagnostics,
 }
 
 impl doxa_selector::DoxaSelectInterface for DoxaSelectInterface {
@@ -91,6 +92,15 @@ impl doxa_selector::DoxaSelectInterface for DoxaSelectInterface {
     }
 
     fn diagnostics_diagnostics(&self) -> Vec<(String, String)> {
+        let left_motor_temperatures = self
+            .left_motors
+            .temperature()
+            .expect_report("couldn't read left temp");
+        let right_motor_temperatures = self
+            .right_motors
+            .temperature()
+            .expect_report("couldn't read right temp");
+        let intake_temperatures = self.intake_diagnostics.motor_temperatures();
         vec![
             (
                 "Battery".to_string(),
@@ -98,19 +108,22 @@ impl doxa_selector::DoxaSelectInterface for DoxaSelectInterface {
             ),
             (
                 "Left motors temperature".to_string(),
-                self.left_motors
-                    .temperature()
-                    .expect_report("couldn't read left temp")
+                left_motor_temperatures
                     // doxa-selector doesn't support ° symbol
                     .map_or_else(|| "Error!".to_string(), |temp| format!("{} C", temp)),
             ),
             (
                 "Right motors temperature".to_string(),
-                self.right_motors
-                    .temperature()
-                    .expect_report("couldn't read right temp")
+                right_motor_temperatures
                     // doxa-selector doesn't support ° symbol
                     .map_or_else(|| "Error!".to_string(), |temp| format!("{} C", temp)),
+            ),
+            (
+                "Intake motors temperature".to_string(),
+                format!(
+                    "{} C, {} C, {} C",
+                    intake_temperatures.0, intake_temperatures.1, intake_temperatures.2,
+                ),
             ),
             (
                 "VEXos uptime".to_string(),
@@ -182,6 +195,7 @@ async fn main(peripherals: Peripherals) {
     };
 
     let gyro_calibrating = robot.tracking.gyro_calibrating().clone();
+    let intake_diagnostics = robot.intake.diagnostics();
     robot
         .compete(doxa_selector::DoxaSelect::new(
             peripherals.display,
@@ -190,6 +204,7 @@ async fn main(peripherals: Peripherals) {
                 gyro_calibrating,
                 left_motors,
                 right_motors,
+                intake_diagnostics,
             },
         ))
         .await;

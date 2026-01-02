@@ -102,6 +102,24 @@ impl std::future::Future for BallDetectedFuture {
     }
 }
 
+/// Diagnostics information for the intake subsystem, returned by `Intake::diagnostics()`.
+#[derive(Debug, Clone)]
+pub struct IntakeDiagnostics {
+    motors: Rc<RefCell<(Motor, Motor, Motor)>>,
+}
+
+impl IntakeDiagnostics {
+    /// Returns the current temperatures of the intake motors.
+    pub fn motor_temperatures(&self) -> (f64, f64, f64) {
+        let (intake, middle, top) = &*self.motors.borrow();
+        (
+            intake.temperature().unwrap_report().unwrap_or(f64::NAN),
+            middle.temperature().unwrap_report().unwrap_or(f64::NAN),
+            top.temperature().unwrap_report().unwrap_or(f64::NAN),
+        )
+    }
+}
+
 /// Represents the intake subsystem of the robot.
 ///
 /// This subsystem is responsible for controlling the intake mechanism,
@@ -120,6 +138,8 @@ pub struct Intake {
     control: Rc<RefCell<Option<IntakeControl>>>,
     /// Whether there is a ball currently detected in the intake.
     ball_detected: Rc<RefCell<bool>>,
+    /// The motors used by the intake subsystem.
+    motors: Rc<RefCell<(Motor, Motor, Motor)>>,
 
     _task: Rc<vexide::task::Task<()>>,
 }
@@ -127,22 +147,26 @@ pub struct Intake {
 impl Intake {
     /// Creates a new instance of the Intake subsystem.
     pub fn new(
-        mut intake: Motor,
-        mut middle: Motor,
-        mut top: Motor,
+        intake: Motor,
+        middle: Motor,
+        top: Motor,
         ball_presence_sensor: DistanceSensor,
         ball_presence_threshold: u32,
     ) -> Self {
         let control = Rc::new(RefCell::new(None));
         let ball_detected = Rc::new(RefCell::new(false));
+        let motors = Rc::new(RefCell::new((intake, middle, top)));
 
         Self {
             control: control.clone(),
             ball_detected: ball_detected.clone(),
+            motors: motors.clone(),
             _task: Rc::new(vexide::task::spawn(async move {
                 loop {
                     // Avoid burning the CPU
                     vexide::time::sleep(Motor::UPDATE_INTERVAL).await;
+
+                    let (intake, middle, top) = &mut *motors.borrow_mut();
 
                     // If the control state is set, apply it
                     if let Some(control) = *control.borrow() {
@@ -258,5 +282,12 @@ impl Intake {
     /// Manually set control state
     pub fn set_control(&mut self, control: Option<IntakeControl>) {
         self.control.replace(control);
+    }
+
+    /// Get diagnostics information about the intake subsystem.
+    pub fn diagnostics(&self) -> IntakeDiagnostics {
+        IntakeDiagnostics {
+            motors: self.motors.clone(),
+        }
     }
 }
