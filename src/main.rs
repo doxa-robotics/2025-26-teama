@@ -64,6 +64,7 @@ struct DoxaSelectInterface {
     left_motors: SharedMotors,
     right_motors: SharedMotors,
     intake_diagnostics: crate::subsystems::intake::IntakeDiagnostics,
+    inertial: std::rc::Rc<std::cell::RefCell<InertialSensor>>,
 }
 
 impl doxa_selector::DoxaSelectInterface for DoxaSelectInterface {
@@ -71,8 +72,22 @@ impl doxa_selector::DoxaSelectInterface for DoxaSelectInterface {
         true
     }
 
+    // We hold inertial over an await point. That is bad practice, because
+    // immutable borrows can *panic*! However, we know that the only other place
+    // that accesses the inertial is the tracking subsystem, which does a
+    // `try_borrow` before accessing it, so we are safe.
+    #[allow(clippy::await_holding_refcell_ref)]
     fn calibrating_calibrate(&mut self) {
-        log::info!("Calibrating...");
+        let inertial = self.inertial.clone();
+        vexide::task::spawn(async move {
+            log::info!("Calibrating gyro...");
+            if let Err(err) = inertial.borrow_mut().calibrate().await {
+                log::error!("Gyro calibration failed: {}", err);
+            } else {
+                log::info!("Gyro calibration complete.");
+            }
+        })
+        .detach();
     }
 
     fn calibrating_calibrating(&self) -> std::rc::Rc<std::cell::RefCell<bool>> {
@@ -162,9 +177,20 @@ async fn main(peripherals: Peripherals) {
         Motor::new(peripherals.port_20, Gearset::Blue, Direction::Forward),
     ]);
 
+    let inertial = std::rc::Rc::new(std::cell::RefCell::new({
+        let mut i = InertialSensor::new(peripherals.port_7);
+        _ = i.set_rotation(Angle::ZERO);
+        _ = i.set_heading(Angle::ZERO);
+        i
+    }));
+
     // Initialize the tracking context for odometry so we can share it with
     // Drivetrain
-    let tracking = TrackingSubsystem::new::<RotationSensor, RotationSensor, InertialSensor>(
+    let tracking = TrackingSubsystem::new::<
+        RotationSensor,
+        RotationSensor,
+        std::rc::Rc<std::cell::RefCell<InertialSensor>>,
+    >(
         [],
         [TrackingWheel::new(
             158.0,
@@ -172,12 +198,7 @@ async fn main(peripherals: Peripherals) {
             libdoxa::subsystems::tracking::wheel::TrackingWheelMountingDirection::Parallel,
             RotationSensor::new(peripherals.port_9, Direction::Reverse),
         )],
-        {
-            let mut i = InertialSensor::new(peripherals.port_7);
-            _ = i.set_rotation(Angle::ZERO);
-            _ = i.set_heading(Angle::ZERO);
-            i
-        },
+        inertial.clone(),
     );
 
     let robot = Robot {
@@ -212,6 +233,7 @@ async fn main(peripherals: Peripherals) {
                 left_motors,
                 right_motors,
                 intake_diagnostics,
+                inertial,
             },
         ))
         .await;
