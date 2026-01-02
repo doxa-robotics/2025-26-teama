@@ -8,7 +8,7 @@ use libdoxa::{
         drivetrain::Drivetrain,
         tracking::{TrackingSubsystem, wheel::TrackingWheel},
     },
-    utils::logger,
+    utils::{logger, unwrap_expect_report::UnwrapExpectReportExt},
 };
 use vexide::{math::Angle, prelude::*, startup::banner::themes::THEME_OFFICIAL_LOGO};
 use vexide_motorgroup::{SharedMotors, motor_group};
@@ -65,6 +65,8 @@ impl SelectCompete for Robot {
 
 struct DoxaSelectInterface {
     gyro_calibrating: std::rc::Rc<std::cell::RefCell<bool>>,
+    left_motors: SharedMotors,
+    right_motors: SharedMotors,
 }
 
 impl doxa_selector::DoxaSelectInterface for DoxaSelectInterface {
@@ -89,7 +91,36 @@ impl doxa_selector::DoxaSelectInterface for DoxaSelectInterface {
     }
 
     fn diagnostics_diagnostics(&self) -> Vec<(String, String)> {
-        vec![]
+        vec![
+            (
+                "Battery".to_string(),
+                format!("{:.0}%", vexide::battery::capacity() * 100.0),
+            ),
+            (
+                "Left motors temperature".to_string(),
+                self.left_motors
+                    .temperature()
+                    .expect_report("couldn't read left temp")
+                    // doxa-selector doesn't support ° symbol
+                    .map_or_else(|| "Error!".to_string(), |temp| format!("{} C", temp)),
+            ),
+            (
+                "Right motors temperature".to_string(),
+                self.right_motors
+                    .temperature()
+                    .expect_report("couldn't read right temp")
+                    // doxa-selector doesn't support ° symbol
+                    .map_or_else(|| "Error!".to_string(), |temp| format!("{} C", temp)),
+            ),
+            (
+                "VEXos uptime".to_string(),
+                format!(
+                    "{}m {}s",
+                    vexide::time::system_uptime().as_secs() / 60,
+                    vexide::time::system_uptime().as_secs() % 60
+                ),
+            ),
+        ]
     }
 }
 
@@ -132,8 +163,8 @@ async fn main(peripherals: Peripherals) {
     let robot = Robot {
         controller: peripherals.primary_controller,
         drivetrain: Drivetrain::new(
-            left_motors,
-            right_motors,
+            SharedMotors(left_motors.0.clone()), // FIXME: vexide_motorgroup didn't implement Clone
+            SharedMotors(right_motors.0.clone()),
             Motor::V5_MAX_VOLTAGE,
             tracking.clone(),
             f64::INFINITY,
@@ -155,7 +186,11 @@ async fn main(peripherals: Peripherals) {
         .compete(doxa_selector::DoxaSelect::new(
             peripherals.display,
             routes::ROUTES,
-            DoxaSelectInterface { gyro_calibrating },
+            DoxaSelectInterface {
+                gyro_calibrating,
+                left_motors,
+                right_motors,
+            },
         ))
         .await;
 }

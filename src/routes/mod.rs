@@ -1,6 +1,7 @@
-mod first;
 mod left_primary;
 mod none;
+mod right_primary;
+mod skills;
 mod test;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -20,10 +21,11 @@ impl std::fmt::Display for Category {
     }
 }
 
-pub const ROUTES: [doxa_selector::Route<Category, super::Robot>; 4] = [
-    first::ROUTE,
+pub const ROUTES: [doxa_selector::Route<Category, super::Robot>; 5] = [
     left_primary::ROUTE,
+    right_primary::ROUTE,
     // Misc routes
     none::ROUTE,
     test::ROUTE,
+    skills::ROUTE,
 ];
