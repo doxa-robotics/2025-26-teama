@@ -5,4 +5,4 @@ pub const ROUTE: doxa_selector::Route<super::Category, crate::Robot> = doxa_sele
     route
 );
 
-async fn route(robot: &mut crate::Robot) -> () {}
+async fn route(_robot: &mut crate::Robot) -> () {}
