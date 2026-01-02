@@ -126,6 +126,17 @@ impl doxa_selector::DoxaSelectInterface for DoxaSelectInterface {
                 ),
             ),
             (
+                "Competition control system".to_string(),
+                vexide::competition::system().map_or_else(
+                    || "Not connected".to_string(),
+                    |system| format!("{:?}", system),
+                ),
+            ),
+            (
+                "Competition mode".to_string(),
+                format!("{:?}", vexide::competition::mode()),
+            ),
+            (
                 "VEXos uptime".to_string(),
                 format!(
                     "{}m {}s",
