@@ -39,11 +39,7 @@ unsafe impl Sync for Robot {}
 impl SelectCompete for Robot {
     async fn driver(&mut self) {
         log::info!("Lifecycle: driver");
-        loop {
-            let Err(err) = opcontrol::normal::opcontrol(self).await;
-            log::error!("Opcontrol error: {}", err);
-            sleep(Duration::from_millis(100)).await;
-        }
+        opcontrol::normal(self).await;
     }
 
     async fn after_route(&mut self) {

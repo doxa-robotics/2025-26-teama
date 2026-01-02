@@ -1,7 +1,6 @@
 use core::time::Duration;
 
 use libdoxa::subsystems::drivetrain::DrivetrainPair;
-use snafu::{ResultExt, Snafu};
 use vexide::prelude::*;
 
 use crate::Robot;
@@ -18,21 +17,13 @@ fn curve_turn(input: f64) -> f64 {
     (if input >= 0.0 { raw } else { -raw }) / 2.0
 }
 
-#[derive(Debug, Snafu)]
-pub enum OpcontrolError {
-    #[snafu(display("Failed to get controller state: {}", source))]
-    ControllerState {
-        source: vexide::controller::ControllerError,
-    },
-}
-
-pub async fn opcontrol(robot: &mut Robot) -> Result<!, OpcontrolError> {
+pub async fn opcontrol(robot: &mut Robot) -> ! {
     robot.intake.brake();
 
     let mut double_park = false;
     let mut outtake_long_start: Option<std::time::Instant> = None;
     loop {
-        let state = robot.controller.state().context(ControllerStateSnafu)?;
+        let state = robot.controller.state().unwrap_or_default();
 
         let speed = curve_drive(state.left_stick.y());
         let turn = curve_turn(state.right_stick.x());
