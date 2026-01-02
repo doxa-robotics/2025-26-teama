@@ -1,20 +1,11 @@
-use crate::Robot;
+pub const ROUTE: doxa_selector::Route<super::Category, crate::Robot> = doxa_selector::route!(
+    super::Category::Other,
+    "None",
+    "No-op. Nothing.",
+    route // comment to prevent rustfmt from onelining
+);
 
-pub struct NoneRoute;
-
-#[async_trait::async_trait]
-impl doxa_selector::AutonRoutine<Robot> for NoneRoute {
-    type Return = ();
-
-    fn name(&self) -> &'static str {
-        "No route"
-    }
-
-    fn description(&self) -> &'static str {
-        "Do nothing."
-    }
-
-    async fn run(&self, _robot: &mut Robot) -> Self::Return {
-        log::info!("No-op route");
-    }
+async fn route(_robot: &mut crate::Robot) -> () {
+    log::info!("Route: none");
+    log::debug!("Doing nothing...");
 }

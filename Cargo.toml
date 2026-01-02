@@ -18,9 +18,8 @@ icon = "cool-x"
 compress = true
 
 [dependencies]
-async-trait = "0.1.89"
-doxa-selector = { path = "../doxa-selector-rs" }
-log = "0.4.22"
+doxa-selector = { git = "https://github.com/doxa-robotics/doxa-selector-rs.git", branch = "main" }
+log = "0.4.29"
 libdoxa = { path = "../libdoxa", features = ["unsafe_debug_render"] }
 snafu = "0.8.5"
 pid = "4.0.0"
@@ -30,11 +29,8 @@ nalgebra = { version = "0.33.2", default-features = false, features = [
   "alloc",
   "libm",
 ] }
+autons = { version = "0.2.0", default-features = false, features = ["compete"] }
 
 [dependencies.vexide]
 version = "0.8.0"
 features = ["full", "vex-sdk-jumptable", "vex-sdk-mock"]
-
-[features]
-default = ["ui"]
-ui = ["doxa-selector/ui"]

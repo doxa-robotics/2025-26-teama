@@ -2,7 +2,7 @@
 
 use std::time::Duration;
 
-use doxa_selector::{CompeteWithSelector, CompeteWithSelectorExt};
+use autons::prelude::{SelectCompete, SelectCompeteExt};
 use libdoxa::{
     subsystems::{
         drivetrain::Drivetrain,
@@ -13,10 +13,7 @@ use libdoxa::{
 use vexide::{math::Angle, prelude::*, startup::banner::themes::THEME_OFFICIAL_LOGO};
 use vexide_motorgroup::{SharedMotors, motor_group};
 
-use crate::{
-    routes::Category,
-    subsystems::{double_park::DoublePark, intake::Intake, match_loader::MatchLoader},
-};
+use crate::subsystems::{double_park::DoublePark, intake::Intake, match_loader::MatchLoader};
 
 mod opcontrol;
 mod routes;
@@ -39,32 +36,9 @@ struct Robot {
 unsafe impl Send for Robot {}
 unsafe impl Sync for Robot {}
 
-impl CompeteWithSelector for Robot {
-    type Category = Category;
-    type Return = ();
-
-    fn autonomous_routes<'a, 'b>(
-        &'b self,
-    ) -> std::collections::BTreeMap<
-        Self::Category,
-        impl AsRef<[&'a dyn doxa_selector::AutonRoutine<Self, Return = Self::Return>]>,
-    >
-    where
-        Self: 'a,
-    {
-        let mut map: std::collections::BTreeMap<
-            Category,
-            Vec<&dyn doxa_selector::AutonRoutine<Self, Return = Self::Return>>,
-        > = std::collections::BTreeMap::new();
-        map.insert(Category::Left, vec![&routes::LeftPrimaryRoute]);
-        map.insert(
-            Category::Other,
-            vec![&routes::NoneRoute, &routes::TestRoute],
-        );
-        map
-    }
-
+impl SelectCompete for Robot {
     async fn driver(&mut self) {
+        log::info!("Lifecycle: driver");
         loop {
             let Err(err) = opcontrol::normal::opcontrol(self).await;
             log::error!("Opcontrol error: {}", err);
@@ -72,26 +46,54 @@ impl CompeteWithSelector for Robot {
         }
     }
 
-    fn controller(&self) -> Option<&vexide::controller::Controller> {
-        Some(&self.controller)
+    async fn after_route(&mut self) {
+        log::info!("Lifecycle: after route");
     }
 
-    fn is_gyro_calibrating(&self) -> bool {
-        self.tracking.is_gyro_calibrating()
+    async fn before_route(&mut self) {
+        log::info!("Lifecycle: before route");
     }
 
-    fn diagnostics(&self) -> Vec<(String, String)> {
-        vec![
-            ("Mood of robot".to_string(), "Happy".to_string()),
-            (
-                "Mood of drive team".to_string(),
-                "Hopefully happy".to_string(),
-            ),
-            (
-                "Heading".to_string(),
-                format!("{:?}", self.tracking.current().heading),
-            ),
-        ]
+    async fn connected(&mut self) {
+        log::info!("Lifecycle: connected");
+    }
+
+    async fn disabled(&mut self) {
+        log::info!("Lifecycle: disabled");
+    }
+
+    async fn disconnected(&mut self) {
+        log::info!("Lifecycle: disconnected");
+    }
+}
+
+struct DoxaSelectInterface {
+    gyro_calibrating: std::rc::Rc<std::cell::RefCell<bool>>,
+}
+
+impl doxa_selector::DoxaSelectInterface for DoxaSelectInterface {
+    fn calibrating_enable(&self) -> bool {
+        true
+    }
+
+    fn calibrating_calibrate(&mut self) {
+        log::info!("Calibrating...");
+    }
+
+    fn calibrating_calibrating(&self) -> std::rc::Rc<std::cell::RefCell<bool>> {
+        self.gyro_calibrating.clone()
+    }
+
+    fn diagnostics_enable(&self) -> bool {
+        true
+    }
+
+    fn diagnostics_compact(&self) -> bool {
+        true
+    }
+
+    fn diagnostics_diagnostics(&self) -> Vec<(String, String)> {
+        vec![]
     }
 }
 
@@ -152,17 +154,14 @@ async fn main(peripherals: Peripherals) {
         double_park: DoublePark::new([AdiDigitalOut::new(peripherals.adi_b)]),
     };
 
-    #[cfg(feature = "ui")]
-    {
-        robot.compete_with_selector(peripherals.display, None).await;
-    }
-
-    #[cfg(not(feature = "ui"))]
-    {
-        robot
-            .compete_with_selector(peripherals.display, Some(&routes::LeftPrimaryRoute))
-            .await;
-    }
+    let gyro_calibrating = robot.tracking.gyro_calibrating().clone();
+    robot
+        .compete(doxa_selector::DoxaSelect::new(
+            peripherals.display,
+            routes::ROUTES,
+            DoxaSelectInterface { gyro_calibrating },
+        ))
+        .await;
 }
 
 #[cfg(test)]
