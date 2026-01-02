@@ -1,6 +1,11 @@
+#![allow(unused)]
+
 use std::time::Duration;
 
-use libdoxa::subsystems::drivetrain::actions::config::ActionConfig;
+use libdoxa::{
+    path_planner::cubic_parametric::CubicParametricPath,
+    subsystems::drivetrain::actions::config::ActionConfig,
+};
 use nalgebra::Point2;
 use vexide::math::Angle;
 
@@ -92,32 +97,31 @@ pub fn boomerang_to_point(
     )
 }
 
-// #[allow(unused)]
-// pub fn smooth_to_point(
-//     point: Point2<f64>,
-//     heading: Angle,
-//     start_easing: f64,
-//     end_easing: f64,
-//     reverse: bool,
-//     disable_seeking_distance: Option<f64>,
-//     config: ActionConfig,
-// ) -> impl libdoxa::subsystems::drivetrain::actions::Action {
-//     libdoxa::subsystems::drivetrain::actions::LazyAction::new(move |data| {
-//         libdoxa::subsystems::drivetrain::actions::PurePursuitAction::new(
-//             CubicParametricPath::new(
-//                 data.offset,
-//                 if reverse {
-//                     data.heading - Angle::HALF_TURN
-//                 } else {
-//                     data.heading
-//                 },
-//                 start_easing * TILES_TO_MM,
-//                 point * TILES_TO_MM,
-//                 heading,
-//                 end_easing * TILES_TO_MM,
-//             ),
-//             disable_seeking_distance,
-//             config,
-//         )
-//     })
-// }
+pub fn smooth_to_point(
+    point: Point2<f64>,
+    heading: Angle,
+    start_easing: f64,
+    end_easing: f64,
+    reverse: bool,
+    disable_seeking_distance: Option<f64>,
+    config: ActionConfig,
+) -> impl libdoxa::subsystems::drivetrain::actions::Action {
+    libdoxa::subsystems::drivetrain::actions::LazyAction::new(move |data| {
+        libdoxa::subsystems::drivetrain::actions::PurePursuitAction::new(
+            CubicParametricPath::new(
+                data.offset,
+                if reverse {
+                    data.heading - Angle::HALF_TURN
+                } else {
+                    data.heading
+                },
+                start_easing * TILES_TO_MM,
+                point * TILES_TO_MM,
+                heading,
+                end_easing * TILES_TO_MM,
+            ),
+            disable_seeking_distance,
+            config,
+        )
+    })
+}
