@@ -5,7 +5,7 @@ use vexide::{math::Angle, time::sleep};
 
 use crate::{
     Robot,
-    subsystems::drivetrain_actions::{CONFIG, drive_to_point, turn_to_point},
+    subsystems::drivetrain_actions::{CONFIG, boomerang_to_point, drive_to_point, turn_to_point},
 };
 
 pub const ROUTE: doxa_selector::Route<super::Category, crate::Robot> = doxa_selector::route!(
@@ -19,22 +19,37 @@ async fn route(robot: &mut crate::Robot) -> () {
     robot
         .tracking
         .set_current(Point2::new(-400.0, -1250.0), Angle::from_radians(1.84));
+    // Drive to the left set of balls while intaking
     robot.intake.intake();
     robot
         .drivetrain
         .action(drive_to_point(Point2::new(-1.0, -1.0), CONFIG))
         .await;
+    // Outtake balls into the center top goal
     robot
         .drivetrain
         .action(drive_to_point(Point2::new(-0.5, -0.5), CONFIG).reversed())
         .await;
     robot.intake.outtake_top_middle();
     sleep(Duration::from_millis(500)).await;
-    // robot.intake.intake();
-    // sleep(Duration::from_millis(3000)).await;
-    // robot.intake.brake();
-
-    // robot.intake.intake();
+    // Go to the match loader
+    robot.intake.brake();
+    robot
+        .drivetrain
+        .action(boomerang_to_point(
+            Point2::new(-2.0, -2.5),
+            -Angle::QUARTER_TURN,
+            CONFIG,
+        ))
+        .await;
+    robot.intake.intake();
+    sleep(Duration::from_millis(1500)).await;
+    // Outtake into the long goal
+    robot.intake.brake();
+    robot
+        .drivetrain
+        .action(drive_to_point(Point2::new(-2.0, -1.2), CONFIG))
+        .await;
     // robot
     //     .drivetrain
     //     .action(drive_to_point(Point2::new(-2.0, -2.0), CONFIG))
