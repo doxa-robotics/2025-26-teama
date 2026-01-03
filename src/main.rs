@@ -1,6 +1,7 @@
 #![feature(never_type)]
 
 use autons::prelude::{SelectCompete, SelectCompeteExt};
+use doxa_selector::DoxaSelectInterface as _;
 use libdoxa::{
     subsystems::{
         drivetrain::Drivetrain,
@@ -125,18 +126,18 @@ impl doxa_selector::DoxaSelectInterface for DoxaSelectInterface {
                 "Left motors temperature".to_string(),
                 left_motor_temperatures
                     // doxa-selector doesn't support ° symbol
-                    .map_or_else(|| "Error!".to_string(), |temp| format!("{} C", temp)),
+                    .map_or_else(|| "Error!".to_string(), |temp| format!("{:.0} C", temp)),
             ),
             (
                 "Right motors temperature".to_string(),
                 right_motor_temperatures
                     // doxa-selector doesn't support ° symbol
-                    .map_or_else(|| "Error!".to_string(), |temp| format!("{} C", temp)),
+                    .map_or_else(|| "Error!".to_string(), |temp| format!("{:.0} C", temp)),
             ),
             (
-                "Intake motors temperature".to_string(),
+                "Intake motor temperatures (from bottom)".to_string(),
                 format!(
-                    "{} C, {} C, {} C",
+                    "{:.0} C, {:.0} C, {:.0} C",
                     intake_temperatures.0, intake_temperatures.1, intake_temperatures.2,
                 ),
             ),
@@ -226,16 +227,23 @@ async fn main(peripherals: Peripherals) {
         double_park: DoublePark::new([AdiDigitalOut::new(peripherals.adi_b)]),
     };
 
-    let mut selector = doxa_selector::DoxaSelect::new(
-        peripherals.display,
-        routes::ROUTES,
-        DoxaSelectInterface {
-            left_motors,
-            right_motors,
-            intake_diagnostics: robot.intake.diagnostics(),
-            inertial,
-        },
+    let selector_interface = DoxaSelectInterface {
+        left_motors,
+        right_motors,
+        intake_diagnostics: robot.intake.diagnostics(),
+        inertial,
+    };
+
+    // Wait a short moment to let the first device packets arrive
+    vexide::time::sleep(Motor::UPDATE_INTERVAL).await;
+
+    log::info!(
+        "Diagnostics: {:?}",
+        selector_interface.diagnostics_diagnostics()
     );
+
+    let mut selector =
+        doxa_selector::DoxaSelect::new(peripherals.display, routes::ROUTES, selector_interface);
 
     // If we're connected to the old competition control system, then select the
     // route we're testing.
