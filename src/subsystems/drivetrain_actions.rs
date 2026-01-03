@@ -96,6 +96,13 @@ pub fn boomerang_to_point(
     libdoxa::subsystems::drivetrain::actions::BoomerangAction::new(point, heading, config)
 }
 
+pub fn seeking_to_point(
+    point: Point2<f64>,
+    config: ActionConfig,
+) -> libdoxa::subsystems::drivetrain::actions::SeekingAction {
+    libdoxa::subsystems::drivetrain::actions::SeekingAction::new(point, config)
+}
+
 pub fn smooth_to_point(
     point: Point2<f64>,
     heading: Angle,
