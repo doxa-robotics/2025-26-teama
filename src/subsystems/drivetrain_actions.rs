@@ -51,7 +51,7 @@ pub const CONFIG: ActionConfig = ActionConfig {
     pursuit_lookahead: 200.0,
 
     linear_error_tolerance: 10.0,
-    linear_velocity_tolerance: 100.0,
+    linear_velocity_tolerance: 50.0,
     linear_tolerance_duration: Duration::from_millis(100),
     linear_timeout: Duration::from_millis(2000),
     turn_error_tolerance: 0.1,
@@ -78,7 +78,7 @@ pub fn turn_to_point(
     point: Point2<f64>,
     config: ActionConfig,
 ) -> libdoxa::subsystems::drivetrain::actions::TurnToPointAction {
-    libdoxa::subsystems::drivetrain::actions::TurnToPointAction::new(point, false, config)
+    libdoxa::subsystems::drivetrain::actions::TurnToPointAction::new(point, config)
 }
 
 pub fn drive_to_point(
