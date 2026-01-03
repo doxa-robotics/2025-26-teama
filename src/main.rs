@@ -226,19 +226,26 @@ async fn main(peripherals: Peripherals) {
         double_park: DoublePark::new([AdiDigitalOut::new(peripherals.adi_b)]),
     };
 
-    let intake_diagnostics = robot.intake.diagnostics();
-    robot
-        .compete(doxa_selector::DoxaSelect::new(
-            peripherals.display,
-            routes::ROUTES,
-            DoxaSelectInterface {
-                left_motors,
-                right_motors,
-                intake_diagnostics,
-                inertial,
-            },
-        ))
-        .await;
+    let mut selector = doxa_selector::DoxaSelect::new(
+        peripherals.display,
+        routes::ROUTES,
+        DoxaSelectInterface {
+            left_motors,
+            right_motors,
+            intake_diagnostics: robot.intake.diagnostics(),
+            inertial,
+        },
+    );
+
+    // If we're connected to the old competition control system, then select the
+    // route we're testing.
+    if vexide::competition::system()
+        == Some(vexide::competition::CompetitionSystem::CompetitionSwitch)
+        && let Some(route) = routes::TESTING_ROUTE
+    {
+        selector.select(route);
+    }
+    robot.compete(selector).await;
 }
 
 #[cfg(test)]

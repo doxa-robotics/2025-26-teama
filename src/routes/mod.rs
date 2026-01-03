@@ -21,6 +21,10 @@ impl std::fmt::Display for Category {
     }
 }
 
+/// If set to Some(index), the route at that index will be run automatically
+/// when testing with the legacy competition switch.
+pub const TESTING_ROUTE: Option<usize> = Some(0);
+
 pub const ROUTES: [doxa_selector::Route<Category, super::Robot>; 5] = [
     left_primary::ROUTE,
     right_primary::ROUTE,
