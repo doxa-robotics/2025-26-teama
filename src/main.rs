@@ -58,7 +58,6 @@ impl SelectCompete for Robot {
 }
 
 struct DoxaSelectInterface {
-    gyro_calibrating: std::rc::Rc<std::cell::RefCell<bool>>,
     left_motors: SharedMotors,
     right_motors: SharedMotors,
     intake_diagnostics: crate::subsystems::intake::IntakeDiagnostics,
@@ -79,17 +78,24 @@ impl doxa_selector::DoxaSelectInterface for DoxaSelectInterface {
         let inertial = self.inertial.clone();
         vexide::task::spawn(async move {
             log::info!("Calibrating gyro...");
-            if let Err(err) = inertial.borrow_mut().calibrate().await {
-                log::error!("Gyro calibration failed: {}", err);
+            if let Ok(mut inertial) = inertial.try_borrow_mut() {
+                if let Err(err) = inertial.calibrate().await {
+                    log::error!("Gyro calibration failed: {}", err);
+                } else {
+                    log::info!("Gyro calibration complete.");
+                }
             } else {
-                log::info!("Gyro calibration complete.");
+                log::error!("Could not borrow inertial for calibration.");
             }
         })
         .detach();
     }
 
-    fn calibrating_calibrating(&self) -> std::rc::Rc<std::cell::RefCell<bool>> {
-        self.gyro_calibrating.clone()
+    fn calibrating_calibrating(&self) -> bool {
+        // If the inertial is unavailable, assume it's calibrating
+        self.inertial
+            .try_borrow()
+            .map_or(true, |inertial| inertial.is_calibrating().unwrap_or(false))
     }
 
     fn diagnostics_enable(&self) -> bool {
@@ -220,14 +226,12 @@ async fn main(peripherals: Peripherals) {
         double_park: DoublePark::new([AdiDigitalOut::new(peripherals.adi_b)]),
     };
 
-    let gyro_calibrating = robot.tracking.gyro_calibrating().clone();
     let intake_diagnostics = robot.intake.diagnostics();
     robot
         .compete(doxa_selector::DoxaSelect::new(
             peripherals.display,
             routes::ROUTES,
             DoxaSelectInterface {
-                gyro_calibrating,
                 left_motors,
                 right_motors,
                 intake_diagnostics,
