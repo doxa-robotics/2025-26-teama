@@ -3,7 +3,7 @@ use core::time::Duration;
 use libdoxa::subsystems::drivetrain::DrivetrainPair;
 use vexide::prelude::*;
 
-use crate::{OUTTAKE_REVERSE_DURATION, Robot};
+use crate::{Robot, subsystems::intake::Intake};
 
 fn curve_drive(input: f64) -> f64 {
     let raw = input.powf(2.0);
@@ -47,9 +47,10 @@ pub async fn opcontrol(robot: &mut Robot) -> ! {
                 }));
             outtake_long_start = Some(std::time::Instant::now());
         }
-        // If outtake long has been held for more than 500ms, switch to outtake long
+        // If outtake long has been held for more than the anti-jam duration,
+        // switch to outtake long
         if let Some(start) = outtake_long_start
-            && std::time::Instant::now().duration_since(start) >= OUTTAKE_REVERSE_DURATION
+            && std::time::Instant::now().duration_since(start) >= Intake::OUTTAKE_REVERSE_DURATION
         {
             robot.intake.outtake_long();
             outtake_long_start = None;

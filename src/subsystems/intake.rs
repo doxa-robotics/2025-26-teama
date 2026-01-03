@@ -1,4 +1,4 @@
-use std::{cell::RefCell, pin::Pin, rc::Rc};
+use std::{cell::RefCell, pin::Pin, rc::Rc, time::Duration};
 
 use libdoxa::utils::unwrap_expect_report::UnwrapExpectReportExt as _;
 use vexide::{
@@ -6,8 +6,6 @@ use vexide::{
     smart::{SmartDevice, motor::Motor},
     time::{Sleep, sleep},
 };
-
-use crate::OUTTAKE_REVERSE_DURATION;
 
 #[derive(Clone, Copy, Debug)]
 pub enum OuttakeMode {
@@ -147,6 +145,9 @@ pub struct Intake {
 }
 
 impl Intake {
+    /// The duration to reverse the intake for anti-jamming before outtaking.
+    pub const OUTTAKE_REVERSE_DURATION: Duration = Duration::from_millis(350);
+
     /// Creates a new instance of the Intake subsystem.
     pub fn new(
         intake: Motor,
@@ -264,7 +265,7 @@ impl Intake {
                 run_intake: false,
                 ..Default::default()
             }));
-        sleep(OUTTAKE_REVERSE_DURATION).await;
+        sleep(Self::OUTTAKE_REVERSE_DURATION).await;
         // Outtake to long goal
         self.control.replace(Some(IntakeControl {
             reverse: false,
