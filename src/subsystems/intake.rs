@@ -7,6 +7,8 @@ use vexide::{
     time::{Sleep, sleep},
 };
 
+use crate::OUTTAKE_REVERSE_DURATION;
+
 #[derive(Clone, Copy, Debug)]
 pub enum OuttakeMode {
     Long,
@@ -246,6 +248,24 @@ impl Intake {
 
     /// Outtake to long goal
     pub fn outtake_long(&mut self) {
+        self.control.replace(Some(IntakeControl {
+            reverse: false,
+            outtake: OuttakeMode::Long,
+            ..Default::default()
+        }));
+    }
+
+    /// Outtake to long goal, with the reversing macro
+    pub async fn outtake_long_anti_jam(&mut self) {
+        // Reverse intake for 500ms to position the ball
+        self.control
+            .replace(Some(crate::subsystems::intake::IntakeControl {
+                reverse: true,
+                run_intake: false,
+                ..Default::default()
+            }));
+        sleep(OUTTAKE_REVERSE_DURATION).await;
+        // Outtake to long goal
         self.control.replace(Some(IntakeControl {
             reverse: false,
             outtake: OuttakeMode::Long,

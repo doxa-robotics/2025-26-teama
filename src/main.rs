@@ -1,5 +1,7 @@
 #![feature(never_type)]
 
+use std::time::Duration;
+
 use autons::prelude::{SelectCompete, SelectCompeteExt};
 use doxa_selector::DoxaSelectInterface as _;
 use libdoxa::{
@@ -18,6 +20,8 @@ mod opcontrol;
 mod routes;
 mod subsystems;
 mod utils;
+
+pub const OUTTAKE_REVERSE_DURATION: Duration = Duration::from_millis(350);
 
 struct Robot {
     controller: Controller,

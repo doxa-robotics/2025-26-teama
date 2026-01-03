@@ -3,9 +3,7 @@ use core::time::Duration;
 use libdoxa::subsystems::drivetrain::DrivetrainPair;
 use vexide::prelude::*;
 
-use crate::Robot;
-
-const OUTTAKE_REVERSE_DURATION: Duration = Duration::from_millis(350);
+use crate::{OUTTAKE_REVERSE_DURATION, Robot};
 
 fn curve_drive(input: f64) -> f64 {
     let raw = input.powf(2.0);
