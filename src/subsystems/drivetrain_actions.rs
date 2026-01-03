@@ -11,6 +11,16 @@ use vexide::math::Angle;
 
 pub const TILES_TO_MM: f64 = 600.0;
 
+pub trait TileToMMExt {
+    fn tiles(self) -> f64;
+}
+
+impl TileToMMExt for f64 {
+    fn tiles(self) -> f64 {
+        self * TILES_TO_MM
+    }
+}
+
 pub const CONFIG: ActionConfig = ActionConfig {
     linear_kp: 0.07,
     linear_kp_limit: f64::MAX,
@@ -51,13 +61,10 @@ pub const CONFIG: ActionConfig = ActionConfig {
 };
 
 pub fn forward(
-    distance_tiles: f64,
+    distance: f64,
     config: ActionConfig,
 ) -> libdoxa::subsystems::drivetrain::actions::ForwardAction {
-    libdoxa::subsystems::drivetrain::actions::ForwardAction::new(
-        distance_tiles * TILES_TO_MM,
-        config,
-    )
+    libdoxa::subsystems::drivetrain::actions::ForwardAction::new(distance, config)
 }
 
 pub fn rotation(
@@ -71,18 +78,14 @@ pub fn turn_to_point(
     point: Point2<f64>,
     config: ActionConfig,
 ) -> libdoxa::subsystems::drivetrain::actions::TurnToPointAction {
-    libdoxa::subsystems::drivetrain::actions::TurnToPointAction::new(
-        point * TILES_TO_MM,
-        false,
-        config,
-    )
+    libdoxa::subsystems::drivetrain::actions::TurnToPointAction::new(point, false, config)
 }
 
 pub fn drive_to_point(
     point: Point2<f64>,
     config: ActionConfig,
 ) -> libdoxa::subsystems::drivetrain::actions::DriveToPointAction {
-    libdoxa::subsystems::drivetrain::actions::DriveToPointAction::new(point * TILES_TO_MM, config)
+    libdoxa::subsystems::drivetrain::actions::DriveToPointAction::new(point, config)
 }
 
 pub fn boomerang_to_point(
@@ -90,11 +93,7 @@ pub fn boomerang_to_point(
     heading: Angle,
     config: ActionConfig,
 ) -> libdoxa::subsystems::drivetrain::actions::BoomerangAction {
-    libdoxa::subsystems::drivetrain::actions::BoomerangAction::new(
-        point * TILES_TO_MM,
-        heading,
-        config,
-    )
+    libdoxa::subsystems::drivetrain::actions::BoomerangAction::new(point, heading, config)
 }
 
 pub fn smooth_to_point(
@@ -115,10 +114,10 @@ pub fn smooth_to_point(
                 } else {
                     data.heading
                 },
-                start_easing * TILES_TO_MM,
-                point * TILES_TO_MM,
+                start_easing,
+                point,
                 heading,
-                end_easing * TILES_TO_MM,
+                end_easing,
             ),
             disable_seeking_distance,
             config,
