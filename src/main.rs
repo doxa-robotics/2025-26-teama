@@ -33,6 +33,8 @@ struct Robot {
     match_loader: MatchLoader,
 
     double_park: DoublePark,
+
+    route_start_time: Option<std::time::Instant>,
 }
 
 impl SelectCompete for Robot {
@@ -41,12 +43,18 @@ impl SelectCompete for Robot {
         opcontrol::normal(self).await;
     }
 
-    async fn after_route(&mut self) {
-        log::info!("Lifecycle: after route");
-    }
-
     async fn before_route(&mut self) {
         log::info!("Lifecycle: before route");
+        self.route_start_time = Some(std::time::Instant::now());
+    }
+
+    async fn after_route(&mut self) {
+        log::info!("Lifecycle: after route");
+        if let Some(start_time) = self.route_start_time {
+            let duration = start_time.elapsed();
+            log::info!("Route duration: {:?}", duration);
+            self.route_start_time = None;
+        }
     }
 
     async fn connected(&mut self) {
@@ -229,6 +237,7 @@ async fn main(peripherals: Peripherals) {
         tracking: tracking.clone(),
         match_loader: MatchLoader::new([AdiDigitalOut::new(peripherals.adi_a)]),
         double_park: DoublePark::new([AdiDigitalOut::new(peripherals.adi_b)]),
+        route_start_time: None,
     };
 
     let selector_interface = DoxaSelectInterface {
