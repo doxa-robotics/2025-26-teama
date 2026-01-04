@@ -102,7 +102,7 @@ pub async fn opcontrol(robot: &mut Robot) -> ! {
                         ..Default::default()
                     }));
                     intake.wait_for_ball(None).await;
-                    vexide::time::sleep(Duration::from_millis(50)).await;
+                    vexide::time::sleep(Duration::from_millis(50)).await; // needs tuning
                     intake.set_control(Some(crate::subsystems::intake::IntakeControl {
                         reverse: true,
                         outtake: crate::subsystems::intake::OuttakeMode::None,
@@ -111,14 +111,9 @@ pub async fn opcontrol(robot: &mut Robot) -> ! {
                     }));
                     vexide::time::sleep(Duration::from_millis(50)).await;
                     intake.brake();
-                    // vexide::time::sleep(Duration::from_millis(50)).await;
                     // Once the ball is in, extend the double park mechanism to lift
                     // the robot.
                     double_park.extend();
-                    vexide::time::sleep(Duration::from_millis(100)).await;
-                    // intake.intake();
-                    vexide::time::sleep(Duration::from_millis(200)).await;
-                    intake.brake();
                 })
                 .detach();
             } else {
