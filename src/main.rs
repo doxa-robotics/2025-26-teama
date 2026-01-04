@@ -247,7 +247,7 @@ async fn main(peripherals: Peripherals) {
     vexide::time::sleep(Motor::UPDATE_INTERVAL).await;
 
     log::info!(
-        "Diagnostics: {:?}",
+        "Diagnostics: {:#?}",
         selector_interface.diagnostics_diagnostics()
     );
 
