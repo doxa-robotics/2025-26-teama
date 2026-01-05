@@ -17,6 +17,15 @@ pub const ROUTE: doxa_selector::Route<super::Category, crate::Robot> = doxa_sele
 
 async fn route(robot: &mut crate::Robot) -> () {
     log::info!("Route: left primary");
+    left_center_match_load(robot).await;
+}
+
+/// Left center goal to match loader route, starting with the documented corner-
+/// to-corner starting position.
+///
+/// This is extracted to serve as a common route for both left_primary and
+/// skills.
+pub(super) async fn left_center_match_load(robot: &mut crate::Robot) {
     robot
         .tracking
         .set_current(Point2::new(-400.0, -1250.0), Angle::from_radians(1.84));

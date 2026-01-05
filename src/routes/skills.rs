@@ -1,3 +1,5 @@
+use crate::routes::left_primary::left_center_match_load;
+
 pub const ROUTE: doxa_selector::Route<super::Category, crate::Robot> = doxa_selector::route!(
     super::Category::Other,
     "Skills",
@@ -5,4 +7,7 @@ pub const ROUTE: doxa_selector::Route<super::Category, crate::Robot> = doxa_sele
     route
 );
 
-async fn route(_robot: &mut crate::Robot) -> () {}
+async fn route(robot: &mut crate::Robot) -> () {
+    log::info!("Route: skills");
+    left_center_match_load(robot).await;
+}
