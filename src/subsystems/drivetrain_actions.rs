@@ -109,7 +109,6 @@ pub fn smooth_to_point(
     start_easing: f64,
     end_easing: f64,
     reverse: bool,
-    disable_seeking_distance: Option<f64>,
     config: ActionConfig,
 ) -> impl libdoxa::subsystems::drivetrain::actions::Action {
     libdoxa::subsystems::drivetrain::actions::LazyAction::new(move |data| {
@@ -126,7 +125,6 @@ pub fn smooth_to_point(
                 heading,
                 end_easing,
             ),
-            disable_seeking_distance,
             config,
         )
     })
