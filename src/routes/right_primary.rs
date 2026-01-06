@@ -5,7 +5,8 @@ use nalgebra::Point2;
 use vexide::{math::Angle, time::sleep};
 
 use crate::subsystems::drivetrain_actions::{
-    CONFIG, TileToMMExt as _, boomerang_to_point, drive_to_point, seeking_to_point, turn_to_point,
+    CONFIG, TileToMMExt as _, boomerang_to_point, drive_to_point, forward, seeking_to_point,
+    turn_to_point,
 };
 
 pub const ROUTE: doxa_selector::Route<super::Category, crate::Robot> = doxa_selector::route!(
@@ -31,16 +32,27 @@ async fn route(robot: &mut crate::Robot) -> () {
     // Outtake balls into the center top goal
     robot
         .drivetrain
-        .action(turn_to_point(Point2::new(0.5.tiles(), -0.5.tiles()), CONFIG).reversed())
+        .action(turn_to_point(
+            Point2::new(0.5.tiles(), -0.5.tiles()),
+            CONFIG,
+        ))
         .await;
     robot
         .drivetrain
         // TODO: this action is timing out, probably because we miss the point
         // slightly and fail the tolerances. Maybe use dot product instead of norm
         // to determine closeness in libdoxa?
-        .action(seeking_to_point(Point2::new(0.5.tiles(), -0.5.tiles()), CONFIG).reversed())
+        .action(seeking_to_point(
+            Point2::new(0.5.tiles(), -0.5.tiles()),
+            CONFIG,
+        ))
         .await;
-    robot.intake.outtake_top_middle(); // TODO: we might have to flip the bot around to outtake out of the intake
+    robot.intake.reverse_intake();
+    robot.drivetrain.action(forward(-100.0, CONFIG)).await;
+    robot
+        .drivetrain
+        .action(turn_to_point(Point2::new(0.5.tiles(), -0.5.tiles()), CONFIG).reversed())
+        .await;
     sleep(Duration::from_millis(1000)).await;
     // Go to the match loader
     robot.intake.brake();
