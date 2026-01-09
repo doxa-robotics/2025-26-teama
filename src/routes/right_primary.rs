@@ -21,14 +21,23 @@ async fn route(robot: &mut crate::Robot) -> () {
         .set_current(Point2::new(400.0, -1250.0), Angle::from_radians(1.30));
     // Drive to the right set of balls while intaking
     robot.intake.intake();
+    let mut match_loader = robot.match_loader.clone();
     robot
         .drivetrain
         .action(drive_to_point(
             Point2::new(1.0.tiles(), -1.2.tiles()),
-            CONFIG,
+            CONFIG.with_linear_error_tolerance(100.0),
         ))
+        .with_once_callback(
+            |tracking| tracking.offset.y > -1.5.tiles(),
+            move || {
+                match_loader.extend();
+            },
+        )
         .await;
     // Outtake balls into the center lower goal, facing forwards
+    robot.match_loader.retract();
+    robot.intake.reverse_intake();
     robot
         .drivetrain
         .action(drive_to_point(
@@ -37,7 +46,6 @@ async fn route(robot: &mut crate::Robot) -> () {
         ))
         .await;
     // RUnning and not running to un-jam the ball
-    robot.intake.reverse_intake();
     robot
         .drivetrain
         .action(
@@ -50,10 +58,12 @@ async fn route(robot: &mut crate::Robot) -> () {
     robot.intake.brake();
     sleep(Duration::from_millis(200)).await;
     robot.intake.reverse_intake();
+    robot.drivetrain.action(forward(40.0, CONFIG)).await;
     sleep(Duration::from_millis(800)).await;
     robot.intake.brake();
     // Move backwards to avoid hitting the goal
-    robot.drivetrain.action(forward(-60.0, CONFIG)).await;
+    robot.match_loader.retract();
+    robot.drivetrain.action(forward(-100.0, CONFIG)).await;
     // Orient towards the match loader
     robot
         .drivetrain
@@ -70,7 +80,7 @@ async fn route(robot: &mut crate::Robot) -> () {
     robot
         .drivetrain
         .action(boomerang_to_point(
-            Point2::new(1.8.tiles(), -2.5.tiles()),
+            Point2::new(1.77.tiles(), -2.5.tiles()),
             -Angle::QUARTER_TURN,
             CONFIG.with_boomerang_lead(0.65),
         ))
@@ -95,7 +105,6 @@ async fn route(robot: &mut crate::Robot) -> () {
     sleep(Duration::from_millis(1000)).await;
     // Outtake into the long goal
     robot.intake.brake();
-    let mut match_loader = robot.match_loader.clone();
     let intake = robot.intake.clone();
     robot
         .drivetrain
@@ -109,7 +118,6 @@ async fn route(robot: &mut crate::Robot) -> () {
         .with_once_callback(
             |tracking| tracking.offset.y > -1.6.tiles(),
             move || {
-                match_loader.retract();
                 let mut intake = intake.clone();
                 vexide::task::spawn(async move {
                     intake.outtake_long_anti_jam().await;
@@ -119,4 +127,5 @@ async fn route(robot: &mut crate::Robot) -> () {
         )
         .await;
     sleep(Duration::from_millis(3000)).await;
+    robot.match_loader.retract();
 }
