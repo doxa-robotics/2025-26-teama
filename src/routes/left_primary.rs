@@ -5,7 +5,7 @@ use nalgebra::Point2;
 use vexide::{math::Angle, time::sleep};
 
 use crate::subsystems::drivetrain_actions::{
-    CONFIG, TileToMMExt as _, boomerang_to_point, drive_to_point, forward, turn_to_point,
+    CONFIG, TileToMMExt as _, boomerang_to_point, drive_to_point, turn_to_point,
 };
 
 pub const ROUTE: doxa_selector::Route<super::Category, crate::Robot> = doxa_selector::route!(
@@ -122,7 +122,4 @@ pub(super) async fn left_center_match_load(robot: &mut crate::Robot, is_skills: 
         Duration::from_millis(3000)
     })
     .await;
-    robot.drivetrain.action(forward(200.0, CONFIG)).await;
-    robot.drivetrain.action(forward(-200.0, CONFIG)).await;
-    robot.intake.brake();
 }

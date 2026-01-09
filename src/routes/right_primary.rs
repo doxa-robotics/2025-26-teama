@@ -119,7 +119,4 @@ async fn route(robot: &mut crate::Robot) -> () {
         })
         .await;
     sleep(Duration::from_millis(3000)).await;
-    robot.drivetrain.action(forward(200.0, CONFIG)).await;
-    robot.drivetrain.action(forward(-200.0, CONFIG)).await;
-    // robot.intake.brake();
 }
