@@ -85,9 +85,9 @@ pub(super) async fn left_center_match_load(robot: &mut crate::Robot, is_skills: 
     }); // Intentionally not awaited
     robot.intake.intake();
     sleep(if is_skills {
-        Duration::from_millis(1200)
+        Duration::from_millis(3000)
     } else {
-        Duration::from_secs(3)
+        Duration::from_millis(1200)
     })
     .await;
     // Outtake into the long goal
@@ -117,9 +117,9 @@ pub(super) async fn left_center_match_load(robot: &mut crate::Robot, is_skills: 
         })
         .await;
     sleep(if is_skills {
-        Duration::from_millis(3000)
+        Duration::from_millis(8000)
     } else {
-        Duration::from_secs(8)
+        Duration::from_millis(3000)
     })
     .await;
     robot.drivetrain.action(forward(200.0, CONFIG)).await;
