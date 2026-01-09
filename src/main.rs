@@ -12,7 +12,9 @@ use libdoxa::{
 use vexide::{math::Angle, prelude::*, startup::banner::themes::THEME_OFFICIAL_LOGO};
 use vexide_motorgroup::{SharedMotors, motor_group};
 
-use crate::subsystems::{double_park::DoublePark, intake::Intake, match_loader::MatchLoader};
+use crate::subsystems::{
+    descore_arm::DescoreArm, double_park::DoublePark, intake::Intake, match_loader::MatchLoader,
+};
 
 mod opcontrol;
 mod routes;
@@ -27,6 +29,7 @@ struct Robot {
 
     intake: Intake,
     match_loader: MatchLoader,
+    descore_arm: DescoreArm,
 
     double_park: DoublePark,
 
@@ -36,11 +39,13 @@ struct Robot {
 impl SelectCompete for Robot {
     async fn driver(&mut self) {
         log::info!("Lifecycle: driver");
+        self.descore_arm.extend();
         opcontrol::normal(self).await;
     }
 
     async fn before_route(&mut self) {
         log::info!("Lifecycle: before route");
+        self.descore_arm.extend();
         self.route_start_time = Some(std::time::Instant::now());
     }
 
@@ -232,7 +237,8 @@ async fn main(peripherals: Peripherals) {
         ),
         tracking: tracking.clone(),
         match_loader: MatchLoader::new([AdiDigitalOut::new(peripherals.adi_a)]),
-        double_park: DoublePark::new([AdiDigitalOut::new(peripherals.adi_b)]),
+        double_park: DoublePark::new([AdiDigitalOut::new(peripherals.adi_d)]),
+        descore_arm: DescoreArm::new([AdiDigitalOut::new(peripherals.adi_b)]),
         route_start_time: None,
     };
 

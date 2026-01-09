@@ -86,6 +86,11 @@ pub async fn opcontrol(robot: &mut Robot) -> ! {
             robot.match_loader.toggle();
         }
 
+        // x is descore arm
+        if state.button_x.is_now_pressed() {
+            robot.descore_arm.toggle();
+        }
+
         // power button is double park
         // I've always wanted to find a use for the power button
         if state.button_power.is_now_pressed() {
