@@ -1,3 +1,4 @@
+mod left_long_first;
 mod left_primary;
 mod none;
 mod right_primary;
@@ -25,8 +26,9 @@ impl std::fmt::Display for Category {
 /// when testing with the legacy competition switch.
 pub const TESTING_ROUTE: Option<usize> = Some(1);
 
-pub const ROUTES: [doxa_selector::Route<Category, super::Robot>; 5] = [
+pub const ROUTES: [doxa_selector::Route<Category, super::Robot>; 6] = [
     left_primary::ROUTE,
+    left_long_first::ROUTE,
     right_primary::ROUTE,
     // Misc routes
     none::ROUTE,
