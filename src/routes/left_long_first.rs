@@ -4,9 +4,7 @@ use libdoxa::subsystems::drivetrain::{DrivetrainPair, actions::VoltageAction};
 use nalgebra::Point2;
 use vexide::{math::Angle, time::sleep};
 
-use crate::subsystems::drivetrain_actions::{
-    CONFIG, TileToMMExt as _, boomerang_to_point, drive_to_point, forward,
-};
+use crate::subsystems::drivetrain_actions::{CONFIG, TileToMMExt as _, drive_to_point, forward};
 
 pub const ROUTE: doxa_selector::Route<super::Category, crate::Robot> = doxa_selector::route!(
     super::Category::Left,
