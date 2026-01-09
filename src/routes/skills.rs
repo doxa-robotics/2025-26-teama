@@ -17,7 +17,7 @@ pub const ROUTE: doxa_selector::Route<super::Category, crate::Robot> = doxa_sele
 
 async fn route(robot: &mut crate::Robot) -> () {
     log::info!("Route: skills");
-    super::left_new::left_center_match_load_new(robot, true).await;
+    super::left_primary::left_center_match_load(robot, true).await;
     robot.drivetrain.action(forward(150.0, CONFIG)).await;
     // robot
     //     .drivetrain

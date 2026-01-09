@@ -5,8 +5,7 @@ use nalgebra::Point2;
 use vexide::{math::Angle, time::sleep};
 
 use crate::subsystems::drivetrain_actions::{
-    CONFIG, TileToMMExt as _, boomerang_to_point, drive_to_point, forward, seeking_to_point,
-    turn_to_point,
+    CONFIG, TileToMMExt as _, boomerang_to_point, drive_to_point, forward, turn_to_point,
 };
 
 pub const ROUTE: doxa_selector::Route<super::Category, crate::Robot> = doxa_selector::route!(
@@ -18,7 +17,7 @@ pub const ROUTE: doxa_selector::Route<super::Category, crate::Robot> = doxa_sele
 
 async fn route(robot: &mut crate::Robot) -> () {
     log::info!("Route: left primary");
-    left_center_match_load(robot).await;
+    left_center_match_load(robot, false).await;
 }
 
 /// Left center goal to match loader route, starting with the documented corner-
@@ -26,39 +25,36 @@ async fn route(robot: &mut crate::Robot) -> () {
 ///
 /// This is extracted to serve as a common route for both left_primary and
 /// skills.
-pub(super) async fn left_center_match_load(robot: &mut crate::Robot) {
+pub(super) async fn left_center_match_load(robot: &mut crate::Robot, is_skills: bool) {
     robot
         .tracking
         .set_current(Point2::new(-400.0, -1250.0), Angle::from_radians(1.84));
     // Drive to the left set of balls while intaking
     robot.intake.intake();
-    let mut match_loader = robot.match_loader.clone();
     robot
         .drivetrain
         .action(drive_to_point(
-            Point2::new(-1.0.tiles(), -1.1.tiles()),
-            CONFIG.with_linear_limit(7.0),
+            Point2::new(-1.0.tiles(), -1.2.tiles()),
+            CONFIG,
         ))
-        .with_callback(move |tracking| {
-            if tracking.offset.y > -1.2.tiles() {
-                // match_loader.extend();
-            }
-        })
         .await;
     // Outtake balls into the center top goal
     // robot.match_loader.retract();
     robot
         .drivetrain
-        .action(turn_to_point(Point2::new(-0.5.tiles(), -0.5.tiles()), CONFIG).reversed())
+        .action(drive_to_point(Point2::new(-0.6.tiles(), -0.6.tiles()), CONFIG).reversed())
         .await;
     robot
         .drivetrain
-        // .action(seeking_to_point(Point2::new(-0.55.tiles(), -0.45.tiles()), CONFIG).reversed())
-        .action(seeking_to_point(Point2::new(-0.55.tiles(), -0.47.tiles()), CONFIG).reversed())
-        // .action(seeking_to_point(Point2::new(-0.5.tiles(), -0.5.tiles()), CONFIG).reversed())
+        .action(
+            libdoxa::subsystems::drivetrain::actions::RotationAction::new(
+                (Angle::EIGHTH_TURN + Angle::HALF_TURN).as_radians(),
+                CONFIG,
+            ), // .reversed(),
+        )
         .await;
     robot.intake.outtake_top_middle();
-    sleep(Duration::from_millis(1000)).await;
+    sleep(Duration::from_millis(1300)).await;
     // Go to the match loader
     robot.intake.brake();
     robot.intake.intake();
@@ -88,7 +84,12 @@ pub(super) async fn left_center_match_load(robot: &mut crate::Robot) {
         voltage: DrivetrainPair::new_voltage(10.0, 10.0),
     }); // Intentionally not awaited
     robot.intake.intake();
-    sleep(Duration::from_millis(1200)).await;
+    sleep(if is_skills {
+        Duration::from_millis(1200)
+    } else {
+        Duration::from_secs(3)
+    })
+    .await;
     // Outtake into the long goal
     robot.intake.brake();
     let mut match_loader = robot.match_loader.clone();
@@ -96,7 +97,13 @@ pub(super) async fn left_center_match_load(robot: &mut crate::Robot) {
     let mut triggered = false;
     robot
         .drivetrain
-        .action(drive_to_point(Point2::new(-2.0.tiles(), -1.35.tiles()), CONFIG).reversed())
+        .action(
+            drive_to_point(
+                Point2::new(-2.0.tiles(), -1.35.tiles()),
+                CONFIG.with_linear_error_tolerance(100.0),
+            )
+            .reversed(),
+        )
         .with_callback(move |tracking| {
             if tracking.offset.y > -1.6.tiles() && !triggered {
                 triggered = true;
@@ -109,7 +116,12 @@ pub(super) async fn left_center_match_load(robot: &mut crate::Robot) {
             }
         })
         .await;
-    sleep(Duration::from_millis(3000)).await;
+    sleep(if is_skills {
+        Duration::from_millis(3000)
+    } else {
+        Duration::from_secs(8)
+    })
+    .await;
     robot.drivetrain.action(forward(200.0, CONFIG)).await;
     robot.drivetrain.action(forward(-200.0, CONFIG)).await;
     robot.intake.brake();
