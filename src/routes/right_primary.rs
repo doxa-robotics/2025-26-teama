@@ -28,8 +28,7 @@ async fn route(robot: &mut crate::Robot) -> () {
             CONFIG,
         ))
         .await;
-    // Outtake balls into the center top goal
-    // robot.match_loader.retract();
+    // Outtake balls into the center lower goal, facing forwards
     robot
         .drivetrain
         .action(drive_to_point(
@@ -37,7 +36,7 @@ async fn route(robot: &mut crate::Robot) -> () {
             CONFIG,
         ))
         .await;
-    robot.intake.brake();
+    // RUnning and not running to un-jam the ball
     robot.intake.reverse_intake();
     robot
         .drivetrain
@@ -45,22 +44,24 @@ async fn route(robot: &mut crate::Robot) -> () {
             libdoxa::subsystems::drivetrain::actions::RotationAction::new(
                 (Angle::HALF_TURN - Angle::EIGHTH_TURN).as_radians(),
                 CONFIG,
-            ), // .reversed(),
+            ),
         )
         .await;
     robot.intake.brake();
     sleep(Duration::from_millis(200)).await;
     robot.intake.reverse_intake();
-    sleep(Duration::from_millis(850)).await;
+    sleep(Duration::from_millis(800)).await;
     robot.intake.brake();
+    // Move backwards to avoid hitting the goal
     robot.drivetrain.action(forward(-60.0, CONFIG)).await;
+    // Orient towards the match loader
     robot
         .drivetrain
         .action(
             libdoxa::subsystems::drivetrain::actions::RotationAction::new(
                 (-Angle::EIGHTH_TURN + Angle::HALF_TURN).as_radians(),
                 CONFIG,
-            ), // .reversed(),
+            ),
         )
         .await;
     // Go to the match loader

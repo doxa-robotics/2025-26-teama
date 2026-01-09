@@ -39,7 +39,6 @@ pub(super) async fn left_center_match_load(robot: &mut crate::Robot, is_skills: 
         ))
         .await;
     // Outtake balls into the center top goal
-    // robot.match_loader.retract();
     robot
         .drivetrain
         .action(drive_to_point(Point2::new(-0.6.tiles(), -0.6.tiles()), CONFIG).reversed())
@@ -50,13 +49,12 @@ pub(super) async fn left_center_match_load(robot: &mut crate::Robot, is_skills: 
             libdoxa::subsystems::drivetrain::actions::RotationAction::new(
                 (Angle::EIGHTH_TURN + Angle::HALF_TURN).as_radians(),
                 CONFIG,
-            ), // .reversed(),
+            ),
         )
         .await;
     robot.intake.outtake_top_middle();
     sleep(Duration::from_millis(1300)).await;
     // Go to the match loader
-    robot.intake.brake();
     robot.intake.intake();
     let mut match_loader = robot.match_loader.clone();
     robot
