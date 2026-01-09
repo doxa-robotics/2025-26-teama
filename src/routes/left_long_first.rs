@@ -47,7 +47,6 @@ async fn route(robot: &mut crate::Robot) -> () {
     robot.intake.brake();
     let mut match_loader = robot.match_loader.clone();
     let intake = robot.intake.clone();
-    let mut triggered = false;
     robot
         .drivetrain
         .action(
@@ -57,17 +56,17 @@ async fn route(robot: &mut crate::Robot) -> () {
             )
             .reversed(),
         )
-        .with_callback(move |tracking| {
-            if tracking.offset.y > -1.6.tiles() && !triggered {
-                triggered = true;
+        .with_once_callback(
+            |tracking| tracking.offset.y > -1.6.tiles(),
+            move || {
                 match_loader.retract();
                 let mut intake = intake.clone();
                 vexide::task::spawn(async move {
                     intake.outtake_long_anti_jam().await;
                 })
                 .detach();
-            }
-        })
+            },
+        )
         .await;
     sleep(Duration::from_millis(2700)).await;
     robot.drivetrain.action(forward(150.0, CONFIG)).await;

@@ -64,11 +64,10 @@ pub(super) async fn left_center_match_load(robot: &mut crate::Robot, is_skills: 
             -Angle::QUARTER_TURN,
             CONFIG.with_boomerang_lead(0.65),
         ))
-        .with_callback(move |tracking| {
-            if tracking.offset.y < -1.0.tiles() {
-                match_loader.extend();
-            }
-        })
+        .with_once_callback(
+            |tracking| tracking.offset.y < -1.0.tiles(),
+            move || match_loader.extend(),
+        )
         .await;
     robot
         .drivetrain
@@ -92,7 +91,6 @@ pub(super) async fn left_center_match_load(robot: &mut crate::Robot, is_skills: 
     robot.intake.brake();
     let mut match_loader = robot.match_loader.clone();
     let intake = robot.intake.clone();
-    let mut triggered = false;
     robot
         .drivetrain
         .action(
@@ -102,17 +100,17 @@ pub(super) async fn left_center_match_load(robot: &mut crate::Robot, is_skills: 
             )
             .reversed(),
         )
-        .with_callback(move |tracking| {
-            if tracking.offset.y > -1.6.tiles() && !triggered {
-                triggered = true;
+        .with_once_callback(
+            |tracking| tracking.offset.y > -1.6.tiles(),
+            move || {
                 match_loader.retract();
                 let mut intake = intake.clone();
                 vexide::task::spawn(async move {
                     intake.outtake_long_anti_jam().await;
                 })
                 .detach();
-            }
-        })
+            },
+        )
         .await;
     sleep(if is_skills {
         Duration::from_millis(8000)
