@@ -19,20 +19,6 @@ async fn route(robot: &mut crate::Robot) -> () {
     log::info!("Route: skills");
     super::left_primary::left_center_match_load(robot, true).await;
     robot.drivetrain.action(forward(150.0, CONFIG)).await;
-    // robot
-    //     .drivetrain
-    //     .action(drive_to_point(Point2::new(-60.0, -1.5.tiles()), CONFIG))
-    //     .await;
-    // robot
-    //     .drivetrain
-    //     .action(
-    //         drive_to_point(
-    //             Point2::new(-60.0, -4.0.tiles()),
-    //             CONFIG.with_linear_limit(Motor::V5_MAX_VOLTAGE),
-    //         )
-    //         .reversed(),
-    //     )
-    //     .await;
     robot
         .drivetrain
         .action(drive_to_point(
@@ -44,7 +30,7 @@ async fn route(robot: &mut crate::Robot) -> () {
     robot
         .drivetrain
         .action(drive_to_point(
-            Point2::new(1.8.tiles(), -2.5.tiles()),
+            Point2::new(1.77.tiles(), -2.5.tiles()),
             CONFIG,
         ))
         .await;
