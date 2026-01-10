@@ -262,7 +262,8 @@ impl Intake {
         self.control
             .replace(Some(crate::subsystems::intake::IntakeControl {
                 reverse: true,
-                run_intake: false,
+                run_intake: true,
+                outtake: crate::subsystems::intake::OuttakeMode::TopMiddle,
                 ..Default::default()
             }));
         sleep(Self::OUTTAKE_REVERSE_DURATION).await;

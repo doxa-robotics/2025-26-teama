@@ -42,7 +42,8 @@ pub async fn opcontrol(robot: &mut Robot) -> ! {
                 .intake
                 .set_control(Some(crate::subsystems::intake::IntakeControl {
                     reverse: true,
-                    run_intake: false,
+                    run_intake: true,
+                    outtake: crate::subsystems::intake::OuttakeMode::TopMiddle,
                     ..Default::default()
                 }));
             outtake_long_start = Some(std::time::Instant::now());
