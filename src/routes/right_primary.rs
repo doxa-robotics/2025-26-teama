@@ -37,15 +37,16 @@ async fn route(robot: &mut crate::Robot) -> () {
         .await;
     // Outtake balls into the center lower goal, facing forwards
     robot.match_loader.retract();
-    robot.intake.reverse_intake();
+    robot.intake.brake();
     robot
         .drivetrain
         .action(drive_to_point(
-            Point2::new(0.6.tiles(), -0.6.tiles()),
+            Point2::new(0.65.tiles(), -0.65.tiles()),
             CONFIG,
         ))
         .await;
     // RUnning and not running to un-jam the ball
+    robot.intake.reverse_intake();
     robot
         .drivetrain
         .action(
@@ -55,15 +56,15 @@ async fn route(robot: &mut crate::Robot) -> () {
             ),
         )
         .await;
+    sleep(Duration::from_millis(400)).await;
     robot.intake.brake();
-    sleep(Duration::from_millis(200)).await;
+    sleep(Duration::from_millis(150)).await;
     robot.intake.reverse_intake();
-    robot.drivetrain.action(forward(40.0, CONFIG)).await;
-    sleep(Duration::from_millis(800)).await;
-    robot.intake.brake();
+    robot.drivetrain.action(forward(70.0, CONFIG)).await;
+    sleep(Duration::from_millis(100)).await;
+    robot.intake.intake();
     // Move backwards to avoid hitting the goal
-    robot.match_loader.retract();
-    robot.drivetrain.action(forward(-100.0, CONFIG)).await;
+    robot.drivetrain.action(forward(-130.0, CONFIG)).await;
     // Orient towards the match loader
     robot
         .drivetrain
