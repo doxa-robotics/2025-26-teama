@@ -249,7 +249,7 @@ async fn main(peripherals: Peripherals) {
     };
 
     // Wait a short moment to let the first device packets arrive
-    vexide::time::sleep(Motor::UPDATE_INTERVAL).await;
+    vexide::time::sleep(Motor::UPDATE_INTERVAL * 4).await;
 
     log::info!(
         "Diagnostics: {:#?}",
