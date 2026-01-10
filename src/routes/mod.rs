@@ -3,6 +3,7 @@ mod left_primary;
 mod none;
 mod right_primary;
 mod skills;
+mod skills_safe;
 mod test;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -26,7 +27,7 @@ impl std::fmt::Display for Category {
 /// when testing with the legacy competition switch.
 pub const TESTING_ROUTE: Option<usize> = Some(2);
 
-pub const ROUTES: [doxa_selector::Route<Category, super::Robot>; 6] = [
+pub const ROUTES: [doxa_selector::Route<Category, super::Robot>; 7] = [
     left_primary::ROUTE,
     left_long_first::ROUTE,
     right_primary::ROUTE,
@@ -34,4 +35,5 @@ pub const ROUTES: [doxa_selector::Route<Category, super::Robot>; 6] = [
     none::ROUTE,
     test::ROUTE,
     skills::ROUTE,
+    skills_safe::ROUTE,
 ];
