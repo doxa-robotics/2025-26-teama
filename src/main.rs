@@ -39,7 +39,6 @@ struct Robot {
 impl SelectCompete for Robot {
     async fn driver(&mut self) {
         log::info!("Lifecycle: driver");
-        self.descore_arm.extend();
         opcontrol::normal(self).await;
     }
 
