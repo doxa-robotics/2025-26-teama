@@ -25,17 +25,19 @@
       in
       {
         devShell = pkgs.mkShell {
-          buildInputs = [
-            cargo-v5'
-            pkgs.cargo-binutils
-            (rustToolchain.override {
-              extensions = [
-                "rust-analyzer"
-                "rust-src"
-                "clippy"
-              ];
-            })
-          ];
+          buildInputs = (
+            [
+              pkgs.cargo-binutils
+              (rustToolchain.override {
+                extensions = [
+                  "rust-analyzer"
+                  "rust-src"
+                  "clippy"
+                ];
+              })
+            ]
+            ++ (if system != "aarch64-darwin" then [ cargo-v5' ] else [ ])
+          );
         };
       }
     ));
