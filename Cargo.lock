@@ -161,7 +161,7 @@ dependencies = [
 [[package]]
 name = "doxa-selector"
 version = "0.3.0"
-source = "git+https://github.com/doxa-robotics/doxa-selector-rs.git?branch=main#cdc23faef6ed61178092a90dae3c09c3118763e3"
+source = "git+https://github.com/doxa-robotics/doxa-selector-rs.git?branch=main#2ba37629d1405e86637eb8422a891cc59ad55424"
 dependencies = [
  "autons",
  "buoyant",

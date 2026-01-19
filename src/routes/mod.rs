@@ -27,7 +27,7 @@ impl std::fmt::Display for Category {
 /// when testing with the legacy competition switch.
 pub const TESTING_ROUTE: Option<usize> = Some(2);
 
-pub const ROUTES: [doxa_selector::Route<Category, super::Robot>; 7] = [
+pub const ROUTES: &[doxa_selector::Route<Category, super::Robot>] = &[
     left_primary::ROUTE,
     left_long_first::ROUTE,
     left_new::ROUTE,
