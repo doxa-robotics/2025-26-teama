@@ -17,15 +17,6 @@ pub const ROUTE: doxa_selector::Route<super::Category, crate::Robot> = doxa_sele
 
 async fn route(robot: &mut crate::Robot) -> () {
     log::info!("Route: left primary");
-    left_center_match_load(robot, false).await;
-}
-
-/// Left center goal to match loader route, starting with the documented corner-
-/// to-corner starting position.
-///
-/// This is extracted to serve as a common route for both left_primary and
-/// skills.
-pub(super) async fn left_center_match_load(robot: &mut crate::Robot, is_skills: bool) {
     robot
         .tracking
         .set_current(Point2::new(-400.0, -1250.0), Angle::from_radians(1.84));
@@ -81,12 +72,7 @@ pub(super) async fn left_center_match_load(robot: &mut crate::Robot, is_skills: 
         voltage: DrivetrainPair::new_voltage(10.0, 10.0),
     }); // Intentionally not awaited
     robot.intake.intake();
-    sleep(if is_skills {
-        Duration::from_millis(3000)
-    } else {
-        Duration::from_millis(1200)
-    })
-    .await;
+    sleep(Duration::from_millis(1200)).await;
     // Outtake into the long goal
     robot.intake.brake();
     let mut match_loader = robot.match_loader.clone();
@@ -112,10 +98,5 @@ pub(super) async fn left_center_match_load(robot: &mut crate::Robot, is_skills: 
             },
         )
         .await;
-    sleep(if is_skills {
-        Duration::from_millis(8000)
-    } else {
-        Duration::from_millis(3000)
-    })
-    .await;
+    sleep(Duration::from_millis(3000)).await;
 }
