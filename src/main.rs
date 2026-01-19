@@ -84,7 +84,7 @@ impl doxa_selector::DoxaSelectInterface for DoxaSelectInterface {
 
     // We hold inertial over an await point. That is bad practice, because
     // immutable borrows can *panic*! However, we know that the only other place
-    // that accesses the inertial is the tracking subsystem, which does a
+    // that accesses the inertial is the code immediately below, which does a
     // `try_borrow` before accessing it, so we are safe.
     #[allow(clippy::await_holding_refcell_ref)]
     fn calibrating_calibrate(&mut self) {
@@ -268,12 +268,4 @@ async fn main(peripherals: Peripherals) {
         selector.select(route);
     }
     robot.compete(selector).await;
-}
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_adds_two() {
-        assert_eq!(2 + 2, 4);
-    }
 }
