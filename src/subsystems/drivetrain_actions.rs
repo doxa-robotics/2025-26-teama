@@ -22,11 +22,11 @@ impl TileToMMExt for f64 {
 }
 
 pub const CONFIG: ActionConfig = ActionConfig {
-    linear_kp: 0.07,
+    linear_kp: 0.14,
     linear_kp_limit: f64::MAX,
-    linear_ki: 0.00007,
+    linear_ki: 0.00014,
     linear_ki_limit: 4.0,
-    linear_kd: 0.3,
+    linear_kd: 0.6,
     linear_kd_limit: f64::MAX,
     linear_limit: 9.0,
 
