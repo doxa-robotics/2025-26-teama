@@ -42,7 +42,7 @@ pub async fn opcontrol(robot: &mut Robot) -> ! {
                 .intake
                 .set_control(Some(crate::subsystems::intake::IntakeControl {
                     reverse: true,
-                    run_intake: true,
+                    run_intake: false,
                     outtake: crate::subsystems::intake::OuttakeMode::TopMiddle,
                     ..Default::default()
                 }));
