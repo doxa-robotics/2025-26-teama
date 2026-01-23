@@ -27,7 +27,21 @@ This repository is organized as follows:
   - **`/autons`**: Files for each autonomous route. Each route runs for 15 seconds, with the exception of `skills.rs`, which lasts 60 seconds.
   - **`/opcontrol`**: Control for the teleop phase.
   - **`/subsystems`**: Subsystem control for this year's custom subsystems.
-  - **`/utils`**: Various utilities, including a custom logger which logs to the SD card.
+
+Most of the business logic exists in `libdoxa`, which is a separate repo from this one.
+
+## Hardware details
+
+- Forward-backward: 35 cm / 353-ish mm
+- Left-right: 35 cm / 350 mm
+
+Tracking wheel offset: 10 mm
+
+## Autonomous routes
+
+- **Left long first**  
+  It starts in the same setup as skills (aligner over outside of goal, wheel touching goal; right side of robot is aligned with right tile edge)  
+  Y: -1375 mm X: −399 mm
 
 ## License
 
