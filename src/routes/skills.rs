@@ -1,6 +1,12 @@
 use std::time::Duration;
 
-use libdoxa::subsystems::drivetrain::{DrivetrainPair, actions::VoltageAction};
+use libdoxa::{
+    path_planner::cubic_parametric::CubicParametricPath,
+    subsystems::drivetrain::{
+        DrivetrainPair,
+        actions::{PurePursuitAction, VoltageAction},
+    },
+};
 use nalgebra::Point2;
 use vexide::{math::Angle, time::sleep};
 
@@ -19,13 +25,13 @@ async fn route(robot: &mut crate::Robot) -> () {
     log::info!("Route: skills");
     robot
         .tracking
-        .set_current(Point2::new(-385.0, -1417.0), Angle::HALF_TURN);
+        .set_current(Point2::new(-399.0, -1375.0), Angle::HALF_TURN);
     // Head to the match loader first
     robot.drivetrain.action(forward(100.0, CONFIG)).await;
     robot
         .drivetrain
         .action(drive_to_point(
-            Point2::new(-1.8.tiles(), -2.0.tiles()),
+            Point2::new(-1.9.tiles(), -2.0.tiles()),
             CONFIG,
         ))
         .await;
@@ -45,69 +51,24 @@ async fn route(robot: &mut crate::Robot) -> () {
         voltage: DrivetrainPair::new_voltage(10.0, 10.0),
     }); // Intentionally not awaited
     robot.intake.intake();
-    sleep(Duration::from_millis(1200)).await;
+    sleep(Duration::from_millis(1500)).await;
 
-    // Outtake into the long goal
-    robot.intake.brake();
-    let mut match_loader = robot.match_loader.clone();
-    let intake = robot.intake.clone();
+    // Drive to other side of goal
     robot
         .drivetrain
         .action(
-            drive_to_point(
-                Point2::new(-2.0.tiles(), -1.35.tiles()),
-                CONFIG.with_linear_error_tolerance(100.0),
+            PurePursuitAction::new(
+                CubicParametricPath::new(
+                    Point2::new(-1200.0, -1200.0),
+                    -Angle::QUARTER_TURN,
+                    2882.0,
+                    Point2::new(-1200.0, 1200.0),
+                    Angle::from_radians(2.4085543677521746),
+                    4214.0,
+                ),
+                CONFIG,
             )
             .reversed(),
         )
-        .with_once_callback(
-            |tracking| tracking.offset.y > -1.6.tiles(),
-            move || {
-                match_loader.retract();
-                let mut intake = intake.clone();
-                vexide::task::spawn(async move {
-                    intake.outtake_long_anti_jam().await;
-                })
-                .detach();
-            },
-        )
         .await;
-    sleep(Duration::from_millis(2700)).await;
-    // TODO: reset tracking context using the aligner
-    robot.drivetrain.action(forward(150.0, CONFIG)).await;
-    robot.intake.intake();
-
-    robot
-        .drivetrain
-        .action(drive_to_point(
-            Point2::new(-1.0.tiles(), -1.0.tiles()),
-            CONFIG,
-        ))
-        .await;
-    let mut match_loader = robot.match_loader.clone();
-    robot
-        .drivetrain
-        .action(turn_to_point(
-            Point2::new(-2.0.tiles(), 3.0.tiles()),
-            CONFIG,
-        ))
-        .with_once_callback(
-            |tracking| tracking.offset.x > -1.2.tiles(),
-            move || {
-                match_loader.extend();
-            },
-        )
-        .await;
-    robot
-        .drivetrain
-        .action(boomerang_to_point(
-            Point2::new(-2.0.tiles(), 3.0.tiles()),
-            Angle::QUARTER_TURN,
-            CONFIG,
-        ))
-        .await;
-    // Hold the position while loading
-    robot.drivetrain.action(VoltageAction {
-        voltage: DrivetrainPair::new_voltage(10.0, 10.0),
-    }); // Intentionally not awaited
 }
