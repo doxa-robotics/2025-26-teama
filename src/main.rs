@@ -260,10 +260,12 @@ async fn main(peripherals: Peripherals) {
 
     // If we're connected to the old competition control system, then select the
     // route we're testing.
+    let testing_route = routes::testing_route_index();
     if vexide::competition::system()
         == Some(vexide::competition::CompetitionSystem::CompetitionSwitch)
-        && let Some(route) = routes::TESTING_ROUTE
+        && let Some(route) = testing_route
     {
+        log::error!("Auto-selecting testing route index {}", route);
         selector.select(route);
     }
     robot.compete(selector).await;
