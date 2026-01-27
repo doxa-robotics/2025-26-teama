@@ -21,13 +21,22 @@ pub const ROUTE: doxa_selector::Route<super::Category, crate::Robot> = doxa_sele
     route
 );
 
+/// Total duration for which the robot intakes at the match loader
+const MATCH_LOAD_DURATION: Duration = Duration::from_millis(2750);
+/// Total duration for which the robot outtakes into the goal
+///
+/// Must be greater than or equal to GOAL_CALIBRATE_DURATION
+const GOAL_OUTTAKE_DURATION: Duration = Duration::from_millis(3000);
+/// Duration for which the robot reverses before calibrating against the goal
+const GOAL_CALIBRATE_DURATION: Duration = Duration::from_millis(1000);
+
 async fn match_load(robot: &mut crate::Robot) {
     // // Version with stop and start to attempt to reduce jams
     // robot.drivetrain.action(VoltageAction {
     //     voltage: DrivetrainPair::new_voltage(10.0, 10.0),
     // }); // Intentionally not awaited
     // robot.intake.intake();
-    // sleep(Duration::from_millis(1500)).await;
+    // sleep(MATCH_LOAD_DURATION / 2).await;
     // robot.intake.brake();
     // robot.drivetrain.action(VoltageAction {
     //     voltage: DrivetrainPair::from(0.0),
@@ -37,14 +46,28 @@ async fn match_load(robot: &mut crate::Robot) {
     //     voltage: DrivetrainPair::from(0.0),
     // }); // Intentionally not awaited
     // robot.intake.intake();
-    // sleep(Duration::from_millis(1250)).await;
+    // sleep(MATCH_LOAD_DURATION / 2).await;
     // robot.intake.brake();
     robot.drivetrain.action(VoltageAction {
         voltage: DrivetrainPair::new_voltage(10.0, 10.0),
     }); // Intentionally not awaited
     robot.intake.intake();
-    sleep(Duration::from_millis(2750)).await;
+    sleep(MATCH_LOAD_DURATION).await;
     robot.intake.brake();
+}
+
+async fn calibrate_and_outtake(robot: &mut crate::Robot) {
+    robot.intake.outtake_long_anti_jam().await;
+    sleep(GOAL_CALIBRATE_DURATION).await;
+    robot.drivetrain.action(VoltageAction {
+        voltage: DrivetrainPair::ZERO,
+    }); // Intentionally not awaited
+    // Calibrate position against long goal once we're all the way back
+    robot.tracking.set_current(
+        Point2::new(-2.0, robot.tracking.current().offset.y),
+        robot.tracking.current().heading,
+    );
+    sleep(GOAL_OUTTAKE_DURATION - GOAL_CALIBRATE_DURATION).await;
 }
 
 async fn route(robot: &mut crate::Robot) -> () {
@@ -117,7 +140,7 @@ async fn route(robot: &mut crate::Robot) -> () {
     );
 
     robot.intake.outtake_long_anti_jam().await;
-    sleep(Duration::from_millis(2750)).await;
+    sleep(GOAL_OUTTAKE_DURATION).await;
 
     // MARK: match load 2
     // Head to the match loader
@@ -125,9 +148,18 @@ async fn route(robot: &mut crate::Robot) -> () {
     robot
         .drivetrain
         .action(drive_to_point(
-            Point2::new(-1.97.tiles(), 2.6.tiles()),
+            Point2::new(-1.95.tiles(), 2.0.tiles()),
             CONFIG.with_linear_error_tolerance(100.0),
         ))
+        .await;
+    robot
+        .drivetrain
+        .action(
+            libdoxa::subsystems::drivetrain::actions::RotationAction::new(
+                (Angle::QUARTER_TURN).as_radians(),
+                CONFIG,
+            ),
+        )
         .await;
     // Hold the position while loading
     // Load with the macro
@@ -138,6 +170,7 @@ async fn route(robot: &mut crate::Robot) -> () {
         .await;
 
     // MARK: goal 2
+    // Left long goal, top
     // Drive backwards to goal
     robot
         .drivetrain
@@ -149,17 +182,81 @@ async fn route(robot: &mut crate::Robot) -> () {
         voltage: DrivetrainPair::from(-10.0),
     }); // Intentionally not awaited
     robot.match_loader.retract();
-
-    robot.intake.outtake_long_anti_jam().await;
-    sleep(Duration::from_millis(1000)).await;
-    robot.drivetrain.action(VoltageAction {
-        voltage: DrivetrainPair::ZERO,
-    }); // Intentionally not awaited
-    // Calibrate position against long goal once we're all the way back
-    robot.tracking.set_current(
-        Point2::new(-2.0, robot.tracking.current().offset.y),
-        robot.tracking.current().heading,
-    );
-    sleep(Duration::from_millis(2000)).await;
+    calibrate_and_outtake(robot).await;
     robot.drivetrain.action(forward(-200.0, CONFIG)).await;
+
+    // MARK: match load 3
+    // Top right match loader
+    robot
+        .drivetrain
+        .action(drive_to_point(
+            Point2::new(1.95.tiles(), 2.0.tiles()),
+            CONFIG,
+        ))
+        .await;
+    robot.intake.intake();
+    robot.match_loader.extend();
+    robot
+        .drivetrain
+        .action(
+            libdoxa::subsystems::drivetrain::actions::RotationAction::new(
+                (Angle::QUARTER_TURN).as_radians(),
+                CONFIG,
+            ),
+        )
+        .await;
+    // Load with the macro
+    match_load(robot).await;
+    robot
+        .drivetrain
+        .action(forward(-200.0, CONFIG.with_linear_error_tolerance(60.0)))
+        .await;
+
+    // MARK: goal 3
+    // Drive to other side of goal (bottom of right long goal)
+    robot
+        .drivetrain
+        .action(drive_to_point(
+            Point2::new(1.2.tiles(), 1.0.tiles()),
+            CONFIG.with_linear_error_tolerance(60.0),
+        ))
+        .await;
+    robot
+        .drivetrain
+        .action(drive_to_point(
+            Point2::new(1.2.tiles(), -1.0.tiles()),
+            CONFIG.with_linear_error_tolerance(60.0),
+        ))
+        .await;
+    robot
+        .drivetrain
+        .action(drive_to_point(
+            Point2::new(2.0.tiles(), -2.0.tiles()),
+            CONFIG.with_linear_error_tolerance(60.0),
+        ))
+        .await;
+    robot.match_loader.retract();
+    robot
+        .drivetrain
+        .action(drive_to_point(Point2::new(2.0.tiles(), -1.2.tiles()), CONFIG).reversed())
+        .await;
+    calibrate_and_outtake(robot).await;
+    robot
+        .drivetrain
+        .action(forward(-200.0, CONFIG.with_linear_error_tolerance(60.0)))
+        .await;
+
+    // TODO: should we go for a 4th match load?
+
+    // MARK: park
+    robot
+        .drivetrain
+        .action(drive_to_point(
+            Point2::new(0.0.tiles(), -1.0.tiles()),
+            CONFIG,
+        ))
+        .await;
+    robot.drivetrain.action(VoltageAction {
+        voltage: DrivetrainPair::from(12.0),
+    }); // Intentionally not awaited
 }
