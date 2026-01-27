@@ -144,13 +144,22 @@ async fn route(robot: &mut crate::Robot) -> () {
         .action(drive_to_point(Point2::new(-2.0.tiles(), 1.2.tiles()), CONFIG).reversed())
         .await;
     // Calibrate position against long goal
+    // Back up against goal
+    robot.drivetrain.action(VoltageAction {
+        voltage: DrivetrainPair::from(-10.0),
+    }); // Intentionally not awaited
+    robot.match_loader.retract();
+
+    robot.intake.outtake_long_anti_jam().await;
+    sleep(Duration::from_millis(1000)).await;
+    robot.drivetrain.action(VoltageAction {
+        voltage: DrivetrainPair::ZERO,
+    }); // Intentionally not awaited
+    // Calibrate position against long goal once we're all the way back
     robot.tracking.set_current(
         Point2::new(-2.0, robot.tracking.current().offset.y),
         robot.tracking.current().heading,
     );
-    robot.match_loader.retract();
-
-    robot.intake.outtake_long_anti_jam().await;
-    sleep(Duration::from_millis(2750)).await;
+    sleep(Duration::from_millis(2000)).await;
     robot.drivetrain.action(forward(-200.0, CONFIG)).await;
 }
