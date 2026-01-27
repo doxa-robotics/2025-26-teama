@@ -22,11 +22,11 @@ impl TileToMMExt for f64 {
 }
 
 pub const CONFIG: ActionConfig = ActionConfig {
-    linear_kp: 0.14,
+    linear_kp: 0.06,
     linear_kp_limit: f64::MAX,
-    linear_ki: 0.00014,
+    linear_ki: 0.0,
     linear_ki_limit: 4.0,
-    linear_kd: 0.6,
+    linear_kd: 0.25,
     linear_kd_limit: f64::MAX,
     linear_limit: 9.0,
 
@@ -51,13 +51,13 @@ pub const CONFIG: ActionConfig = ActionConfig {
     pursuit_lookahead: 200.0,
 
     linear_error_tolerance: 10.0,
-    linear_velocity_tolerance: 50.0,
+    linear_velocity_tolerance: 20.0,
     linear_tolerance_duration: Duration::from_millis(100),
-    linear_timeout: Duration::from_millis(2000),
+    linear_timeout: Duration::from_millis(20000),
     turn_error_tolerance: 0.1,
-    turn_velocity_tolerance: 50.0,
+    turn_velocity_tolerance: 20.0,
     turn_tolerance_duration: Duration::from_millis(100),
-    turn_timeout: Duration::from_millis(1500),
+    turn_timeout: Duration::from_millis(15000),
 };
 
 pub fn forward(

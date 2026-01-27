@@ -35,6 +35,8 @@ Most of the business logic exists in `libdoxa`, which is a separate repo from th
 - Forward-backward: 35 cm / 353-ish mm
 - Left-right: 35 cm / 350 mm
 
+Center of rotation is 135 mm from front of robot
+
 Tracking wheel offset: 10 mm
 
 ## Autonomous routes

@@ -25,16 +25,17 @@ async fn route(robot: &mut crate::Robot) -> () {
     log::info!("Route: skills");
     robot
         .tracking
-        .set_current(Point2::new(-399.0, -1375.0), Angle::HALF_TURN);
+        .set_current(Point2::new(-600.0 + 170.0, -1375.0), Angle::HALF_TURN);
     // Head to the match loader first
     robot.drivetrain.action(forward(100.0, CONFIG)).await;
     robot
         .drivetrain
         .action(drive_to_point(
-            Point2::new(-1.9.tiles(), -2.0.tiles()),
+            Point2::new(-2.0.tiles(), -2.0.tiles()),
             CONFIG,
         ))
         .await;
+    return;
     robot.intake.intake();
     robot.match_loader.extend();
     robot
