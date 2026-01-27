@@ -22,21 +22,28 @@ pub const ROUTE: doxa_selector::Route<super::Category, crate::Robot> = doxa_sele
 );
 
 async fn match_load(robot: &mut crate::Robot) {
+    // // Version with stop and start to attempt to reduce jams
+    // robot.drivetrain.action(VoltageAction {
+    //     voltage: DrivetrainPair::new_voltage(10.0, 10.0),
+    // }); // Intentionally not awaited
+    // robot.intake.intake();
+    // sleep(Duration::from_millis(1500)).await;
+    // robot.intake.brake();
+    // robot.drivetrain.action(VoltageAction {
+    //     voltage: DrivetrainPair::from(0.0),
+    // }); // Intentionally not awaited
+    // sleep(Duration::from_millis(250)).await;
+    // robot.drivetrain.action(VoltageAction {
+    //     voltage: DrivetrainPair::from(0.0),
+    // }); // Intentionally not awaited
+    // robot.intake.intake();
+    // sleep(Duration::from_millis(1250)).await;
+    // robot.intake.brake();
     robot.drivetrain.action(VoltageAction {
         voltage: DrivetrainPair::new_voltage(10.0, 10.0),
     }); // Intentionally not awaited
     robot.intake.intake();
-    sleep(Duration::from_millis(1500)).await;
-    robot.intake.brake();
-    robot.drivetrain.action(VoltageAction {
-        voltage: DrivetrainPair::from(0.0),
-    }); // Intentionally not awaited
-    sleep(Duration::from_millis(250)).await;
-    robot.drivetrain.action(VoltageAction {
-        voltage: DrivetrainPair::from(0.0),
-    }); // Intentionally not awaited
-    robot.intake.intake();
-    sleep(Duration::from_millis(1250)).await;
+    sleep(Duration::from_millis(2750)).await;
     robot.intake.brake();
 }
 
