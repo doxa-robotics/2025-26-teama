@@ -1,18 +1,10 @@
 use std::time::Duration;
 
-use libdoxa::{
-    path_planner::cubic_parametric::CubicParametricPath,
-    subsystems::drivetrain::{
-        DrivetrainPair,
-        actions::{PurePursuitAction, VoltageAction},
-    },
-};
+use libdoxa::subsystems::drivetrain::{DrivetrainPair, actions::VoltageAction};
 use nalgebra::Point2;
 use vexide::{math::Angle, time::sleep};
 
-use crate::subsystems::drivetrain_actions::{
-    CONFIG, TileToMMExt, boomerang_to_point, drive_to_point, forward, turn_to_point,
-};
+use crate::subsystems::drivetrain_actions::{CONFIG, TileToMMExt, drive_to_point, forward};
 
 pub const ROUTE: doxa_selector::Route<super::Category, crate::Robot> = doxa_selector::route!(
     super::Category::Other,
