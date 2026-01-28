@@ -10,13 +10,13 @@ use crate::subsystems::drivetrain_actions::{
 
 pub const ROUTE: doxa_selector::Route<super::Category, crate::Robot> = doxa_selector::route!(
     super::Category::Left,
-    "Left new",
-    "Center balls > loader > long",
+    "Left elims",
+    "Angle setup - Center balls > loader > long - high scoring",
     route
 );
 
 async fn route(robot: &mut crate::Robot) -> () {
-    log::info!("Route: left new");
+    log::info!("Route: left elims");
     robot
         .tracking
         .set_current(Point2::new(-400.0, -1250.0), Angle::from_radians(1.84));

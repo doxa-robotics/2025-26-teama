@@ -1,5 +1,5 @@
+mod left_elims;
 mod left_long_first;
-mod left_new;
 mod left_primary;
 mod none;
 mod right_primary;
@@ -27,13 +27,13 @@ impl std::fmt::Display for Category {
 /// when testing with the legacy competition switch.
 pub fn testing_route_index() -> Option<usize> {
     // would use a const but patcher is borked
-    Some(6)
+    Some(3)
 }
 
 pub const ROUTES: &[doxa_selector::Route<Category, super::Robot>] = &[
     left_primary::ROUTE,
     left_long_first::ROUTE,
-    left_new::ROUTE,
+    left_elims::ROUTE,
     right_primary::ROUTE,
     // Misc routes
     none::ROUTE,
