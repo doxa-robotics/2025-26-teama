@@ -146,7 +146,7 @@ pub struct Intake {
 
 impl Intake {
     /// The duration to reverse the intake for anti-jamming before outtaking.
-    pub const OUTTAKE_REVERSE_DURATION: Duration = Duration::from_millis(350);
+    pub const OUTTAKE_REVERSE_DURATION: Duration = Duration::from_millis(250);
 
     /// Creates a new instance of the Intake subsystem.
     pub fn new(
