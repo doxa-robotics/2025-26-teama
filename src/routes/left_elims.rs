@@ -26,7 +26,7 @@ async fn route(robot: &mut crate::Robot) -> () {
     robot
         .drivetrain
         .action(drive_to_point(
-            Point2::new(-0.9.tiles(), -1.3.tiles()),
+            Point2::new(-1.2.tiles(), -0.75.tiles()),
             CONFIG.with_linear_error_tolerance(100.0),
         ))
         .with_once_callback(
@@ -36,10 +36,12 @@ async fn route(robot: &mut crate::Robot) -> () {
             },
         )
         .await;
+    // Go to the match loader
+    robot.intake.intake();
     robot
         .drivetrain
         .action(drive_to_point(
-            Point2::new(-1.0.tiles(), -0.9.tiles()),
+            Point2::new(-2.0.tiles(), -2.0.tiles()),
             CONFIG,
         ))
         .await;
@@ -47,28 +49,10 @@ async fn route(robot: &mut crate::Robot) -> () {
         .drivetrain
         .action(
             libdoxa::subsystems::drivetrain::actions::RotationAction::new(
-                (Angle::EIGHTH_TURN + Angle::HALF_TURN).as_radians(),
+                (-Angle::QUARTER_TURN).as_radians(),
                 CONFIG,
             ),
         )
-        .await;
-    sleep(Duration::from_millis(500)).await;
-    // Go to the match loader
-    robot.intake.intake();
-    robot
-        .drivetrain
-        .action(boomerang_to_point(
-            Point2::new(-1.87.tiles(), -2.5.tiles()),
-            -Angle::QUARTER_TURN,
-            CONFIG.with_boomerang_lead(0.65),
-        ))
-        .await;
-    robot
-        .drivetrain
-        .action(turn_to_point(
-            Point2::new(-2.0.tiles(), -4.0.tiles()),
-            CONFIG,
-        ))
         .await;
     // Hold the position while loading
     robot.drivetrain.action(VoltageAction {
@@ -82,7 +66,7 @@ async fn route(robot: &mut crate::Robot) -> () {
         .drivetrain
         .action(
             drive_to_point(
-                Point2::new(-1.9.tiles(), -1.35.tiles()),
+                Point2::new(-2.05.tiles(), -1.35.tiles()),
                 CONFIG.with_linear_error_tolerance(100.0),
             )
             .reversed(),
@@ -98,9 +82,13 @@ async fn route(robot: &mut crate::Robot) -> () {
             },
         )
         .await;
-    sleep(Duration::from_millis(3000)).await;
-    // Hold the position while loading
     robot.drivetrain.action(VoltageAction {
-        voltage: DrivetrainPair::new_voltage(-10.0, -10.0),
+        voltage: DrivetrainPair::new_voltage(-12.0, -12.0),
     }); // Intentionally not awaited
+    sleep(Duration::from_millis(2000)).await;
+    // Hold the position while loading
+    robot.intake.brake();
+    sleep(Duration::from_millis(500)).await;
+    robot.intake.outtake_long_anti_jam().await;
+    sleep(Duration::from_millis(8000)).await;
 }

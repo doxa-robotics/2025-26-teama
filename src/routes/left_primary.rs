@@ -42,57 +42,52 @@ async fn route(robot: &mut crate::Robot) -> () {
         .drivetrain
         .action(
             drive_to_point(
-                Point2::new(-0.55.tiles(), -0.4.tiles()),
+                Point2::new(-0.6.tiles(), -0.5.tiles()),
                 CONFIG.with_linear_error_tolerance(300.0),
             )
             .reversed(),
         )
         .await;
-    robot
-        .drivetrain
-        .action(
-            libdoxa::subsystems::drivetrain::actions::RotationAction::new(
-                (Angle::EIGHTH_TURN + Angle::HALF_TURN).as_radians(),
-                CONFIG,
-            ),
-        )
-        .await;
+    // robot
+    //     .drivetrain
+    //     .action(
+    //         libdoxa::subsystems::drivetrain::actions::RotationAction::new(
+    //             (Angle::EIGHTH_TURN + Angle::HALF_TURN).as_radians(),
+    //             CONFIG,
+    //         ),
+    //     )
+    //     .await;
     robot.intake.outtake_long_anti_jam().await;
     sleep(Duration::from_millis(400)).await;
     robot.intake.outtake_top_middle();
-    sleep(Duration::from_millis(800)).await;
+    sleep(Duration::from_millis(1000)).await;
     // Go to the match loader
     robot.intake.intake();
     let mut match_loader = robot.match_loader.clone();
-    // robot
-    //     .drivetrain
-    //     .action(boomerang_to_point(
-    //         Point2::new(-1.75.tiles(), -2.6.tiles()),
-    //         -Angle::QUARTER_TURN,
-    //         CONFIG.with_boomerang_lead(0.65),
-    //     ))
-    //     .with_once_callback(
-    //         |tracking| tracking.offset.y < -1.0.tiles(),
-    //         move || match_loader.extend(),
-    //     )
-    //     .await;
     robot
         .drivetrain
-        .action(drive_to_point(Point2::new(-1.9.tiles(), -2.0.tiles()), CONFIG).reversed())
+        .action(boomerang_to_point(
+            Point2::new(-1.9.tiles(), -2.6.tiles()),
+            -Angle::QUARTER_TURN,
+            CONFIG.with_boomerang_lead(0.65),
+        ))
+        .with_once_callback(
+            |tracking| tracking.offset.y < -1.0.tiles(),
+            move || match_loader.extend(),
+        )
         .await;
-    robot.match_loader.extend();
     robot
         .drivetrain
         .action(turn_to_point(
-            Point2::new(-1.9.tiles(), -4.0.tiles()),
+            Point2::new(-2.0.tiles(), -4.0.tiles()),
             CONFIG,
         ))
         .await;
     // Hold the position while loading
+    robot.intake.intake();
     robot.drivetrain.action(VoltageAction {
         voltage: DrivetrainPair::from(8.0),
     }); // Intentionally not awaited
-    robot.intake.intake();
     sleep(Duration::from_millis(1200)).await;
     // Outtake into the long goal
     robot.intake.brake();
@@ -102,7 +97,7 @@ async fn route(robot: &mut crate::Robot) -> () {
         .drivetrain
         .action(
             drive_to_point(
-                Point2::new(-2.0.tiles(), -1.2.tiles()),
+                Point2::new(-2.05.tiles(), -1.2.tiles()),
                 CONFIG.with_linear_error_tolerance(100.0),
             )
             .reversed(),
