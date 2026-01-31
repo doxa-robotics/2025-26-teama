@@ -27,7 +27,7 @@ impl std::fmt::Display for Category {
 /// when testing with the legacy competition switch.
 pub fn testing_route_index() -> Option<usize> {
     // would use a const but patcher is borked
-    Some(3)
+    Some(0)
 }
 
 pub const ROUTES: &[doxa_selector::Route<Category, super::Robot>] = &[

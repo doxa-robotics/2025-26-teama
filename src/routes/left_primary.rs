@@ -64,22 +64,27 @@ async fn route(robot: &mut crate::Robot) -> () {
     // Go to the match loader
     robot.intake.intake();
     let mut match_loader = robot.match_loader.clone();
+    // robot
+    //     .drivetrain
+    //     .action(boomerang_to_point(
+    //         Point2::new(-1.75.tiles(), -2.6.tiles()),
+    //         -Angle::QUARTER_TURN,
+    //         CONFIG.with_boomerang_lead(0.65),
+    //     ))
+    //     .with_once_callback(
+    //         |tracking| tracking.offset.y < -1.0.tiles(),
+    //         move || match_loader.extend(),
+    //     )
+    //     .await;
     robot
         .drivetrain
-        .action(boomerang_to_point(
-            Point2::new(-1.9.tiles(), -2.6.tiles()),
-            -Angle::QUARTER_TURN,
-            CONFIG.with_boomerang_lead(0.65),
-        ))
-        .with_once_callback(
-            |tracking| tracking.offset.y < -1.0.tiles(),
-            move || match_loader.extend(),
-        )
+        .action(drive_to_point(Point2::new(-1.9.tiles(), -2.0.tiles()), CONFIG).reversed())
         .await;
+    robot.match_loader.extend();
     robot
         .drivetrain
         .action(turn_to_point(
-            Point2::new(-2.0.tiles(), -4.0.tiles()),
+            Point2::new(-1.9.tiles(), -4.0.tiles()),
             CONFIG,
         ))
         .await;

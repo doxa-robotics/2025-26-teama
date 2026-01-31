@@ -39,12 +39,19 @@ async fn route(robot: &mut crate::Robot) -> () {
     robot.drivetrain.action(forward(-100.0, CONFIG)).await;
     // Outtake balls into the center top goal
     robot.match_loader.retract();
+    let mut intake = robot.intake.clone();
     robot
         .drivetrain
         .action(drive_to_point(
             Point2::new(0.6.tiles(), -0.6.tiles()),
             CONFIG,
         ))
+        .with_once_callback(
+            |tracking| tracking.offset.x < 0.7.tiles(),
+            move || {
+                intake.reverse_intake();
+            },
+        )
         .await;
     robot
         .drivetrain
@@ -55,7 +62,6 @@ async fn route(robot: &mut crate::Robot) -> () {
             ),
         )
         .await;
-    robot.intake.reverse_intake();
     sleep(Duration::from_millis(800)).await;
     // Go to the match loader
     robot.intake.intake();
@@ -63,9 +69,9 @@ async fn route(robot: &mut crate::Robot) -> () {
     robot
         .drivetrain
         .action(boomerang_to_point(
-            Point2::new(1.9.tiles(), -2.4.tiles()),
+            Point2::new(1.85.tiles(), -2.4.tiles()),
             -Angle::QUARTER_TURN,
-            CONFIG.with_boomerang_lead(0.65),
+            CONFIG.with_boomerang_lead(0.6),
         ))
         .with_once_callback(
             |tracking| tracking.offset.y < -1.0.tiles(),
@@ -75,7 +81,7 @@ async fn route(robot: &mut crate::Robot) -> () {
     robot
         .drivetrain
         .action(turn_to_point(
-            Point2::new(2.0.tiles(), -4.0.tiles()),
+            Point2::new(1.9.tiles(), -4.0.tiles()),
             CONFIG,
         ))
         .await;
@@ -93,7 +99,7 @@ async fn route(robot: &mut crate::Robot) -> () {
         .drivetrain
         .action(
             drive_to_point(
-                Point2::new(2.0.tiles(), -1.2.tiles()),
+                Point2::new(1.94.tiles(), -1.2.tiles()),
                 CONFIG.with_linear_error_tolerance(100.0),
             )
             .reversed(),

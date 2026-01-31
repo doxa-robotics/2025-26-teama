@@ -288,7 +288,14 @@ async fn route(robot: &mut crate::Robot) -> () {
             ),
         )
         .await;
-    robot.drivetrain.action(VoltageAction {
-        voltage: DrivetrainPair::from(-12.0),
-    }); // Intentionally not awaited
+    robot
+        .drivetrain
+        .action(
+            drive_to_point(
+                Point2::new(0.0.tiles(), -4.0.tiles()),
+                CONFIG.with_linear_limit(12.0),
+            )
+            .reversed(),
+        )
+        .await;
 }
